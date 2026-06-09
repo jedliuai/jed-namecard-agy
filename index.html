@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jed Liu - Super Business Card</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --card-width: 800px;
+            --card-height: 480px;
+            --bg-color: #020406;
+            --card-color: #111111;
+            --text-main: #f0f0f0;
+            --text-muted: #888888;
+            /* 新增：一种充满科技感与呼吸感的"AI青蓝色"作为点睛之笔 */
+            --accent: #00e5ff; 
+            --accent-glow: rgba(0, 229, 255, 0.4);
+        }
+
+        @property --border-angle {
+            syntax: "<angle>";
+            inherits: false;
+            initial-value: 0deg;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(16, 29, 34, 0.62) 0%, rgba(6, 10, 13, 0.96) 42%, #010203 100%);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent pull-to-refresh on mobile */
+            overscroll-behavior-y: none;
+        }
+
+        /* Portrait Warning Overlay */
+        #portrait-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(16, 29, 34, 0.62) 0%, rgba(6, 10, 13, 0.96) 42%, #010203 100%);
+            background-color: var(--bg-color);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        #portrait-warning .icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
+            animation: rotatePhone 2s ease-in-out infinite;
+        }
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        /* 3D Scene Setup */
+        #app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            perspective: 1500px; /* Gives the 3D depth */
+            /* Prevent scrolling while dragging */
+            touch-action: none;
+        }
+
+        /* 新增：外层包裹器，专门负责悬浮呼吸动画，避免和 JS 的翻转动作冲突 */
+        .card-wrapper {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 1.66 / 1;
+            position: relative;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            /* 6秒一个周期的柔和呼吸动画 */
+            animation: breathe 6s ease-in-out infinite;
+        }
+
+        .card-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            /* Transition for snapping effect */
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Remove transition during active dragging for immediate 1:1 physics */
+        .card-container.dragging {
+            transition: none;
+        }
+
+        /* 修改：更具有呼吸感和有机感的悬浮动效 */
+        @keyframes breathe {
+            0%, 100% { transform: translateY(0px) rotateX(1deg); }
+            50% { transform: translateY(-15px) rotateX(-1deg); }
+        }
+
+        /* Card Faces */
+        .card-face {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #202020 0%, #111111 46%, #080808 100%);
+            border-radius: 24px;
+            box-shadow: 
+                0 30px 70px rgba(0,0,0,0.82),
+                0 0 0 1px rgba(0,229,255,0.035),
+                0 0 45px rgba(0,229,255,0.045),
+                inset 0 1px 1px rgba(255,255,255,0.07),
+                inset 0 -1px 1px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.12);
+            backface-visibility: hidden; /* Crucial for 3D flip */
+            -webkit-backface-visibility: hidden;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 3rem 4rem;
+        }
+
+        .card-face * {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-front {
+            transform: rotateY(0deg) translateZ(0.1px);
+        }
+
+        .card-back {
+            transform: rotateY(180deg) translateZ(0.1px);
+        }
+
+        .card-container.is-front .card-front,
+        .card-container.is-back .card-back {
+            pointer-events: auto;
+        }
+
+        .card-container.is-front .card-back,
+        .card-container.is-back .card-front {
+            pointer-events: none;
+        }
+
+        /* Dynamic Lighting/Glare Effect */
+        .glare {
+            position: absolute;
+            inset: -50%;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.08) 45%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.08) 55%,
+                transparent 70%
+            );
+            transform: translateX(-100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Subtle Noise Texture for Matte Finish */
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0.25;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Meteor Animation System */
+        .meteor-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .meteor {
+            position: absolute;
+            /* 修改：大幅拉长流星的尾巴 */
+            width: 500px; 
+            height: 1px;
+            /* 修改：流星尾迹混入一丝极弱的青蓝色 */
+            background: linear-gradient(90deg, transparent, rgba(0,229,255,0.02) 40%, rgba(0,229,255,0.4));
+            opacity: 0;
+            transform-origin: left center;
+            /* Using CSS variables to randomize each meteor */
+            animation: shoot var(--duration, 8s) var(--delay, 0s) infinite linear;
+            top: var(--top, 50%);
+            left: var(--left, 50%);
+        }
+
+        /* The bright head of the meteor */
+        .meteor::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -0.5px;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            /* 修改：流星头部散发青蓝色的科技微光 */
+            box-shadow: 0 0 10px 2px var(--accent-glow);
+        }
+
+        .music-toggle {
+            position: fixed;
+            top: max(16px, env(safe-area-inset-top));
+            right: max(16px, env(safe-area-inset-right));
+            z-index: 50;
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 999px;
+            background: rgba(10,10,10,0.58);
+            color: rgba(255,255,255,0.72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.32), inset 0 1px 1px rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+        }
+
+        .music-toggle svg {
+            width: 18px;
+            height: 18px;
+            animation: music-spin 12s linear infinite;
+        }
+
+        .music-toggle.is-muted {
+            color: rgba(255,255,255,0.34);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .music-toggle.is-muted svg {
+            animation-play-state: paused;
+        }
+
+        @keyframes music-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 修改：调整关键帧位移距离和时间比例，适配更慢的速度和更长的线条 */
+        @keyframes shoot {
+            0% { transform: rotate(var(--angle, 0deg)) translateX(-500px); opacity: 0; }
+            2% { opacity: 1; }
+            /* 增加划过的时间占比（20%），在极长的周期中它会移动得非常慢 */
+            20% { transform: rotate(var(--angle, 0deg)) translateX(1600px); opacity: 0; }
+            100% { transform: rotate(var(--angle, 0deg)) translateX(1600px); opacity: 0; }
+        }
+
+        /* New Texture: Soft Ambient Glow */
+        .card-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            /* 修改：背景环境光基础亮度稍微调高，交给动画来控制真实的明暗呼吸 */
+            background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 60%);
+            border-radius: 50%;
+            pointer-events: none;
+            top: 50%;
+            transform: translateY(-50%);
+            /* 新增：6秒周期的呼吸灯动画，与物理悬浮（card-wrapper）完美同步 */
+            animation: pulse-glow 6s ease-in-out infinite;
+        }
+
+        /* 新增：环境光呼吸关键帧，0%（沉下）暗，50%（浮起）亮 */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Typography */
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        .slogan {
+            font-size: 0.8rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: #999;
+            font-weight: 300;
+        }
+
+        .contact-item {
+            font-size: 0.9rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            color: #d0d0d0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            /* 新增：平滑过渡效果和指针交互 */
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        a.contact-item {
+            text-decoration: none;
+        }
+
+        /* 新增：鼠标悬停时的呼吸感互动 */
+        .contact-item:hover {
+            color: #ffffff;
+            transform: translateX(4px);
+        }
+        .contact-item:hover svg {
+            color: var(--accent);
+            filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        /* QR Code */
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .qr-box {
+            width: 130px;
+            height: 130px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .qr-image {
+            width: 112px;
+            height: 112px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #fff;
+            padding: 6px;
+            box-shadow: 0 0 18px rgba(0,229,255,0.12);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .qr-box::before,
+        .qr-box::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 13px;
+            padding: 1.5px;
+            background: conic-gradient(
+                from var(--border-angle),
+                transparent 0%,
+                transparent 20%,
+                rgba(0, 229, 255, 0.1) 40%,
+                var(--accent) 50%,
+                transparent 50%,
+                transparent 70%,
+                rgba(0, 229, 255, 0.1) 90%,
+                var(--accent) 100%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: border-spin 4s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .qr-box::after {
+            filter: blur(6px);
+            opacity: 0.7;
+            padding: 2px;
+        }
+
+        @keyframes border-spin {
+            100% { --border-angle: 360deg; }
+        }
+
+        .qr-text-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .qr-text-main {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .qr-text-sub {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+        }
+
+        /* 修改：用宽度代替 Scale 进行响应式缩放，彻底消除与 3D Transform 的冲突 */
+        @media (max-width: 900px) and (orientation: landscape) {
+            .card-wrapper { max-width: 680px; }
+        }
+        @media (max-width: 700px) and (orientation: landscape) {
+            .card-wrapper { max-width: 560px; }
+        }
+        @media (max-width: 600px) and (orientation: landscape) {
+            .card-wrapper { max-width: 480px; }
+            .card-face { padding: 2.5rem 3rem; }
+        }
+
+        @media screen and (orientation: portrait) {
+            #portrait-warning {
+                display: none;
+            }
+
+            #app-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100dvh;
+                height: 100dvw;
+                transform: rotate(90deg) translateY(-100%);
+                transform-origin: top left;
+            }
+
+            .card-wrapper {
+                width: min(calc(100dvh - 28px), calc((100dvw - 28px) * 1.66), 800px);
+                max-width: none;
+            }
+
+            .card-face {
+                padding: 2.05rem 2.45rem;
+            }
+
+            .card-face > .flex {
+                padding-left: 0.35rem !important;
+                padding-right: 0.35rem !important;
+            }
+
+            .card-face h1 {
+                font-size: clamp(2.5rem, 7.4dvh, 3.25rem) !important;
+                line-height: 0.92;
+                margin-bottom: 0.55rem !important;
+                white-space: nowrap;
+            }
+
+            .slogan {
+                font-size: 0.66rem;
+                letter-spacing: 0.22em;
+                white-space: nowrap;
+                margin-bottom: 0.55rem !important;
+            }
+
+            .tagline {
+                font-size: 0.43rem !important;
+                letter-spacing: 0.04em !important;
+                line-height: 1.65;
+                white-space: nowrap;
+                margin-bottom: 1.75rem !important;
+            }
+
+            .contact-item {
+                font-size: 0.76rem;
+                gap: 10px;
+                white-space: nowrap;
+            }
+
+            .contact-item svg {
+                width: 15px;
+                height: 15px;
+                flex: 0 0 auto;
+            }
+
+            .contact-item .text-xs {
+                font-size: 0.55rem;
+                margin-left: 0.35rem !important;
+                letter-spacing: 0.08em;
+            }
+
+            .card-face .gap-5 {
+                gap: 1rem;
+            }
+
+            .card-face .border-l {
+                margin-left: 0.95rem !important;
+                margin-right: 0.95rem !important;
+            }
+
+            .qr-box {
+                width: 118px;
+                height: 118px;
+            }
+
+            .qr-image {
+                width: 102px;
+                height: 102px;
+            }
+
+            .qr-container {
+                gap: 9px;
+            }
+
+            .qr-text-main {
+                font-size: 0.68rem;
+            }
+
+            .qr-text-sub {
+                font-size: 0.54rem;
+            }
+
+            .meteor {
+                animation-name: shoot;
+                animation-duration: calc(var(--duration, 16s) * 0.85) !important;
+                animation-delay: var(--delay, 0s) !important;
+            }
+
+            .meteor:nth-child(1) { animation-delay: 0.8s !important; }
+            .meteor:nth-child(2) { animation-delay: 4.4s !important; }
+            .meteor:nth-child(3) { animation-delay: 7.2s !important; }
+            .meteor:nth-child(4) { animation-delay: 10.5s !important; }
+            .meteor:nth-child(5) { animation-delay: 13.8s !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="portrait-warning">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+        <h2 class="text-xl font-light mb-2 text-white tracking-wider">Please Rotate Device</h2>
+        <p class="text-sm font-light tracking-wide">请将手机横向放置以体验最佳名片效果</p>
+    </div>
+
+    <audio id="bgm" src="名片BGM.mp3" loop preload="auto" playsinline autoplay></audio>
+    <button class="music-toggle" id="music-toggle" type="button" aria-label="Toggle background music" title="Toggle background music">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5"></circle>
+            <path d="M10 15.6V8.4l5.1-1.1v6.9"></path>
+            <circle cx="8.7" cy="16" r="1.7"></circle>
+            <circle cx="13.8" cy="14.5" r="1.7"></circle>
+        </svg>
+    </button>
+
+    <div id="app-container">
+        
+        <!-- Instructional hint text -->
+        <div class="absolute top-8 left-1/2 -translate-x-1/2 text-xs tracking-[0.3em] text-[#444] font-light z-0 uppercase pointer-events-none transition-opacity duration-1000" id="hint-text">
+            Swipe to flip / 左右滑动翻转
+        </div>
+
+        <!-- 新增包裹层 -->
+        <div class="card-wrapper">
+            <div class="card-container" id="card">
+                
+                <div class="card-face card-front">
+                    <div class="noise-overlay"></div>
+                <div class="meteor-container">
+                    <div class="meteor" style="--top: 15%; --left: -10%; --angle: 25deg; --duration: 15s; --delay: 0.5s;"></div>
+                    <div class="meteor" style="--top: 65%; --left: -10%; --angle: 25deg; --duration: 20s; --delay: 3s;"></div>
+                    <div class="meteor" style="--top: -10%; --left: 35%; --angle: 115deg; --duration: 12s; --delay: 1.5s;"></div>
+                    <div class="meteor" style="--top: -10%; --left: 75%; --angle: 115deg; --duration: 18s; --delay: 4s;"></div>
+                    <div class="meteor" style="--top: 85%; --left: -10%; --angle: -20deg; --duration: 22s; --delay: 2s;"></div>
+                </div>
+
+                <div class="card-glow" style="left: 10%;"></div>
+                <div class="glare" id="glare-front"></div>
+                
+                <!-- Main Content (Centered Layout) -->
+                <div class="flex items-center justify-between h-full w-full px-4 md:px-8 z-10">
+                    
+                    <!-- Left: Name, Slogan and Contact -->
+                    <div class="flex flex-col justify-center">
+                        <h1 class="font-serif text-5xl md:text-6xl font-normal tracking-wide text-white mb-3">
+                            Jed Liu
+                        </h1>
+                        <!-- 修改：左侧视觉锚点——将 ✕ 替换为发光的青蓝色 -->
+                        <div class="slogan mb-3">AI First <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent-glow);">✕</span> Global Trade</div>
+                        <div class="tagline text-[11px] text-[#777] tracking-[0.15em] font-light mb-10 uppercase">
+                            AI Automation <span class="mx-1 opacity-50">·</span> Global Trade <span class="mx-1 opacity-50">·</span> Personal Brand
+                        </div>
+                        
+                        <div class="flex flex-col gap-5">
+                            <a class="contact-item" href="mailto:jed@jedliuai.com">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg>
+                                <span>jed@jedliuai.com</span>
+                            </a>
+                            <a class="contact-item" href="https://wa.me/8617686403091" target="_blank" rel="noopener noreferrer">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <span>+86 176 8640 3091 <span class="text-[#666] text-xs ml-2 tracking-wider">WHATSAPP</span></span>
+                            </a>
+                            <a class="contact-item" href="https://jedliuai.com" target="_blank" rel="noopener noreferrer">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span>https://jedliuai.com <span class="text-[#666] text-xs ml-2 tracking-wider uppercase">PERSONAL WEBSITE</span></span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Divider Line -->
+                    <div class="h-1/2 border-l border-white/10 mx-6"></div>
+
+                    <!-- Right: QR Code -->
+                    <div class="flex flex-col items-center justify-center pe-4">
+                        <div class="qr-container">
+                            <div class="qr-box">
+                                <img class="qr-image" src="WhatsApp code.jpg" alt="WhatsApp QR code">
+                            </div>
+                            <div class="qr-text-container">
+                                <span class="qr-text-main">WhatsApp</span>
+                                <span class="qr-text-sub">Scan to Connect</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-face card-back">
+                <div class="noise-overlay"></div>
+                
+                <!-- 修改：大幅增加 duration 时间，放慢速度 -->
+                <div class="meteor-container">
+                    <div class="meteor" style="--top: 25%; --left: -10%; --angle: 25deg; --duration: 18s; --delay: 1s;"></div>
+                    <div class="meteor" style="--top: 75%; --left: -10%; --angle: 25deg; --duration: 15s; --delay: 4s;"></div>
+                    <div class="meteor" style="--top: -10%; --left: 45%; --angle: 115deg; --duration: 20s; --delay: 0s;"></div>
+                    <div class="meteor" style="--top: -10%; --left: 85%; --angle: 115deg; --duration: 14s; --delay: 2.5s;"></div>
+                    <div class="meteor" style="--top: 95%; --left: -10%; --angle: -20deg; --duration: 19s; --delay: 1.2s;"></div>
+                </div>
+
+                <div class="card-glow" style="right: 10%; transform: translateY(-50%) rotateY(180deg);"></div>
+                <div class="glare" id="glare-back"></div>
+                
+                <!-- Main Content (Centered Layout) -->
+                <div class="flex items-center justify-between h-full w-full px-4 md:px-8 z-10">
+                    
+                    <!-- Left: Name, Slogan and Contact -->
+                    <div class="flex flex-col justify-center">
+                        <h1 class="font-serif text-5xl md:text-6xl font-normal tracking-wide text-white mb-3 flex items-baseline gap-4">
+                            Jed Liu 
+                        </h1>
+                        <!-- 修改：左侧视觉锚点——将 ✕ 替换为发光的青蓝色 -->
+                        <div class="slogan mb-3">AI First <span style="color: var(--accent); text-shadow: 0 0 10px var(--accent-glow);">✕</span> 国际贸易</div>
+                        <div class="tagline text-[11px] text-[#777] tracking-[0.15em] font-light mb-10">
+                            AI 自动化 <span class="mx-1 opacity-50">·</span> 国际贸易 <span class="mx-1 opacity-50">·</span> 个人IP
+                        </div>
+                        
+                        <div class="flex flex-col gap-5">
+                            <a class="contact-item" href="mailto:jed@jedliuai.com">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg>
+                                <span>jed@jedliuai.com</span>
+                            </a>
+                            <a class="contact-item" href="tel:+8617686403091">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <span>+86 176 8640 3091 <span class="text-[#666] text-xs ml-2 tracking-wider">WECHAT</span></span>
+                            </a>
+                            <a class="contact-item" href="https://jedliuai.com" target="_blank" rel="noopener noreferrer">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span>https://jedliuai.com <span class="text-[#666] text-xs ml-2 tracking-wider">个人主页</span></span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Divider Line -->
+                    <div class="h-1/2 border-l border-white/10 mx-6"></div>
+
+                    <!-- Right: QR Code -->
+                    <div class="flex flex-col items-center justify-center pe-4">
+                        <div class="qr-container">
+                            <div class="qr-box">
+                                <img class="qr-image" src="Wechat code.png" alt="WeChat QR code">
+                            </div>
+                            <div class="qr-text-container">
+                                <span class="qr-text-main">微信</span>
+                                <span class="qr-text-sub">扫码添加</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </div> <!-- 关闭新增的 card-wrapper -->
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById('card');
+        const appContainer = document.getElementById('app-container');
+        const glareFront = document.getElementById('glare-front');
+        const glareBack = document.getElementById('glare-back');
+        const hintText = document.getElementById('hint-text');
+        const bgm = document.getElementById('bgm');
+        const musicToggle = document.getElementById('music-toggle');
+
+        // Physics State Variables
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let currentRotationY = 0; // The actual persistent rotation
+        let visualRotationY = 0;  // The rotation during drag
+        let lastX = 0;
+        let lastY = 0;
+        let dragAxis = 'x';
+        let lastMoveTime = 0;
+        let velocityY = 0;
+        let inertiaFrame = null;
+        
+        // Window dimensions for sensitivity calculation
+        let interactionWidth = appContainer.clientWidth || window.innerWidth;
+        window.addEventListener('resize', () => {
+            interactionWidth = appContainer.clientWidth || window.innerWidth;
+        });
+
+        function isMobilePortraitLayout() {
+            return window.matchMedia('(orientation: portrait)').matches && window.matchMedia('(pointer: coarse)').matches;
+        }
+
+        function getDragCoord(e) {
+            if (dragAxis === 'y') {
+                return e.clientY;
+            }
+            return e.clientX;
+        }
+
+        // Helper to hide hint after first interaction
+        function hideHint() {
+            if(hintText.style.opacity !== '0') {
+                hintText.style.opacity = '0';
+            }
+        }
+
+        function setMusicMuted(isMuted) {
+            bgm.muted = isMuted;
+            musicToggle.classList.toggle('is-muted', isMuted);
+            musicToggle.setAttribute('aria-pressed', String(isMuted));
+        }
+
+        function tryPlayMusic() {
+            const playAttempt = bgm.play();
+            if (playAttempt && typeof playAttempt.catch === 'function') {
+                playAttempt.catch(() => {
+                    musicToggle.classList.add('is-muted');
+                });
+            }
+        }
+
+        setMusicMuted(false);
+        tryPlayMusic();
+
+        musicToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setMusicMuted(!bgm.muted);
+            if (!bgm.muted) {
+                tryPlayMusic();
+            }
+        });
+
+        document.addEventListener('pointerdown', () => {
+            if (!bgm.muted && bgm.paused) {
+                tryPlayMusic();
+            }
+        }, { once: true });
+
+        // Apply visual updates to rotation and lighting
+        function applyTransform(rotation) {
+            // Apply 3D rotation to the card container
+            card.style.transform = `rotateY(${rotation}deg)`;
+
+            // Calculate Glare (lighting) effect based on rotation
+            // We use modulo to ensure infinite flipping handles lighting correctly
+            let normalizedRotation = rotation % 360;
+            if (normalizedRotation < 0) normalizedRotation += 360;
+
+            const backIsVisible = normalizedRotation > 90 && normalizedRotation < 270;
+            card.classList.toggle('is-back', backIsVisible);
+            card.classList.toggle('is-front', !backIsVisible);
+
+            const frontDelta = ((normalizedRotation + 180) % 360) - 180;
+            const backDelta = ((normalizedRotation - 180 + 540) % 360) - 180;
+            const glareEntryAngle = 65;
+            const glareMax = 120;
+
+            const glarePosition = (delta) => {
+                const direction = delta < 0 ? 1 : -1;
+                const progress = Math.min(Math.abs(delta) / glareEntryAngle, 1);
+                return direction * (100 - progress * glareMax);
+            };
+
+            // Mapping rotation to glare position. The shortest-angle calculation
+            // keeps the highlight visible whether the card is dragged left or right.
+            let frontGlarePos = glarePosition(frontDelta);
+            glareFront.style.transform = `translateX(${frontGlarePos}%)`;
+
+            let backGlarePos = glarePosition(backDelta);
+            glareBack.style.transform = `translateX(${backGlarePos}%)`;
+        }
+
+        function cancelInertia() {
+            if (inertiaFrame) {
+                cancelAnimationFrame(inertiaFrame);
+                inertiaFrame = null;
+            }
+        }
+
+        function snapToNearestFace(rotation) {
+            currentRotationY = Math.round(rotation / 180) * 180;
+            visualRotationY = currentRotationY;
+            card.classList.remove('dragging');
+            applyTransform(currentRotationY);
+        }
+
+        function commitTouchFlipIfNeeded(rotation) {
+            if (!window.matchMedia('(pointer: coarse)').matches) {
+                return false;
+            }
+
+            const deltaRotation = rotation - currentRotationY;
+            const touchFlipThreshold = 32;
+            if (Math.abs(deltaRotation) < touchFlipThreshold) {
+                return false;
+            }
+
+            currentRotationY += deltaRotation > 0 ? 180 : -180;
+            visualRotationY = currentRotationY;
+            card.classList.remove('dragging');
+            applyTransform(currentRotationY);
+            return true;
+        }
+
+        function startInertia(initialVelocity) {
+            const minVelocity = 0.12;
+            let velocity = initialVelocity;
+            let lastFrameTime = performance.now();
+
+            card.classList.add('dragging');
+
+            const animate = (now) => {
+                const deltaTime = Math.min(now - lastFrameTime, 32);
+                lastFrameTime = now;
+
+                visualRotationY += velocity * deltaTime;
+                applyTransform(visualRotationY);
+
+                velocity *= Math.pow(0.94, deltaTime / 16.67);
+
+                if (Math.abs(velocity) > minVelocity) {
+                    inertiaFrame = requestAnimationFrame(animate);
+                    return;
+                }
+
+                inertiaFrame = null;
+                snapToNearestFace(visualRotationY);
+            };
+
+            inertiaFrame = requestAnimationFrame(animate);
+        }
+
+        // Interaction Event Listeners (Mouse & Touch)
+        appContainer.addEventListener('pointerdown', (e) => {
+            cancelInertia();
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            dragAxis = isMobilePortraitLayout() ? 'y' : 'x';
+            lastMoveTime = performance.now();
+            velocityY = 0;
+            
+            // Remove CSS transition/animation so card follows finger instantly
+            card.classList.add('dragging');
+            card.style.animation = 'none'; 
+            hideHint();
+            appContainer.setPointerCapture?.(e.pointerId);
+        });
+
+        appContainer.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+
+            const currentCoord = getDragCoord(e);
+            const previousCoord = dragAxis === 'y' ? lastY : lastX;
+            const startCoord = dragAxis === 'y' ? startY : startX;
+            const delta = currentCoord - startCoord;
+            const now = performance.now();
+            
+            // On phones the page is visually rotated into landscape, so a shorter
+            // physical swipe should still create a decisive card flip.
+            const activeSpan = dragAxis === 'y' ? window.innerHeight : interactionWidth;
+            const sensitivitySpan = activeSpan * (dragAxis === 'y' ? 0.34 : 0.42);
+            const rotationSensitivity = 180 / Math.max(sensitivitySpan, 220);
+            
+            visualRotationY = currentRotationY + (delta * rotationSensitivity);
+            const deltaTime = Math.max(now - lastMoveTime, 1);
+            velocityY = ((currentCoord - previousCoord) * rotationSensitivity) / deltaTime;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastMoveTime = now;
+            applyTransform(visualRotationY);
+        });
+
+        const endDrag = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Re-enable smooth CSS transition for snapping effect
+            card.classList.remove('dragging');
+
+            appContainer.releasePointerCapture?.(e.pointerId);
+
+            if (Math.abs(velocityY) > 0.35) {
+                startInertia(velocityY);
+                return;
+            }
+
+            if (commitTouchFlipIfNeeded(visualRotationY)) {
+                return;
+            }
+
+            snapToNearestFace(visualRotationY);
+        };
+
+        appContainer.addEventListener('pointerup', endDrag);
+        appContainer.addEventListener('pointercancel', endDrag);
+        appContainer.addEventListener('pointerleave', endDrag);
+
+        // Initialize default appearance
+        applyTransform(0);
+
+    </script>
+</body>
+</html>
