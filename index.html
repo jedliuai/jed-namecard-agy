@@ -755,6 +755,10 @@
             return e.clientX;
         }
 
+        function isInteractiveLink(e) {
+            return Boolean(e.target.closest('a.contact-item'));
+        }
+
         // Helper to hide hint after first interaction
         function hideHint() {
             if(hintText.style.opacity !== '0') {
@@ -890,6 +894,10 @@
 
         // Interaction Event Listeners (Mouse & Touch)
         appContainer.addEventListener('pointerdown', (e) => {
+            if (isInteractiveLink(e)) {
+                return;
+            }
+
             cancelInertia();
             isDragging = true;
             startX = e.clientX;
