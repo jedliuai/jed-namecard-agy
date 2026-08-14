@@ -14,13 +14,15 @@
         :root {
             --card-width: 800px;
             --card-height: 480px;
-            --bg-color: #dbe2ea;
-            --card-color: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            /* 银色金属基底上的高级激光科技蓝 */
+            --bg-color: #e6ecf2;
+            --text-main: #0b1320;
+            --text-muted: #526173;
+            /* 高阶激光冷光蓝点缀色 */
             --accent: #0284c7; 
-            --accent-glow: rgba(2, 132, 199, 0.3);
+            --accent-glow: rgba(2, 132, 199, 0.35);
+            --shine-x: 50%;
+            --shine-y: 50%;
+            --shine-opacity: 0.75;
         }
 
         @property --border-angle {
@@ -29,16 +31,21 @@
             initial-value: 0deg;
         }
 
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
             margin: 0;
             padding: 0;
             background:
-                radial-gradient(circle at 50% 36%, #ffffff 0%, #edf2f7 42%, #d5dde6 100%);
+                radial-gradient(circle at 50% 30%, #ffffff 0%, #edf2f7 45%, #d8e1eb 100%);
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             overflow: hidden;
-            /* Prevent pull-to-refresh on mobile */
             overscroll-behavior-y: none;
         }
 
@@ -48,7 +55,7 @@
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 38%, #ffffff 0%, #edf2f7 45%, #d5dde6 100%);
+                radial-gradient(circle at 50% 38%, #ffffff 0%, #edf2f7 45%, #d8e1eb 100%);
             background-color: var(--bg-color);
             z-index: 9999;
             flex-direction: column;
@@ -80,11 +87,16 @@
             align-items: center;
             width: 100vw;
             height: 100vh;
-            perspective: 1500px; /* Gives the 3D depth */
+            perspective: 1600px;
             touch-action: none;
+            cursor: grab;
         }
 
-        /* 外层包裹器，负责悬浮呼吸动画，避免和 JS 的翻转动作冲突 */
+        #app-container.is-dragging {
+            cursor: grabbing;
+        }
+
+        /* 外层包裹器：保持正确的宽高比 */
         .card-wrapper {
             width: 100%;
             max-width: 800px;
@@ -92,57 +104,47 @@
             position: relative;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
-            animation: breathe 6s ease-in-out infinite;
+            will-change: transform;
         }
 
+        /* 卡片容器：承载 3D 旋转与鼠标悬浮倾角 */
         .card-container {
             width: 100%;
             height: 100%;
             position: absolute;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
         }
 
-        .card-container.dragging {
-            transition: none;
-        }
-
-        /* 悬浮动效 */
-        @keyframes breathe {
-            0%, 100% { transform: translateY(0px) rotateX(1deg); }
-            50% { transform: translateY(-14px) rotateX(-1deg); }
-        }
-
-        /* Card Faces - 航空级阳极氧化拉丝银/钛银质感 */
+        /* Card Faces - 极高质感明亮镜光白金/液态银金属材质 */
         .card-face {
             position: absolute;
             inset: 0;
             background: 
                 linear-gradient(
-                    125deg,
+                    132deg,
                     #ffffff 0%,
-                    #f1f5f9 12%,
-                    #d5dde8 26%,
-                    #ffffff 40%,
-                    #e6ecf3 54%,
-                    #cbd6e2 70%,
-                    #f8fafc 86%,
-                    #d9e2ec 100%
+                    #f8fafc 12%,
+                    #eaf0f6 26%,
+                    #ffffff 42%,
+                    #f1f5f9 54%,
+                    #e0e8f1 68%,
+                    #ffffff 84%,
+                    #eef3f8 100%
                 );
-            border-radius: 24px;
+            border-radius: 26px;
             box-shadow: 
-                0 35px 85px rgba(15, 23, 42, 0.16),
-                0 12px 30px rgba(15, 23, 42, 0.08),
-                0 0 0 1px rgba(255, 255, 255, 0.95),
-                0 0 0 2px rgba(148, 163, 184, 0.35), /* 精密 CNC 铣边金属线 */
-                0 0 50px rgba(2, 132, 199, 0.05),
-                inset 0 2px 2px rgba(255, 255, 255, 1), /* 上边缘倒角亮边 */
-                inset 0 -2px 3px rgba(71, 85, 105, 0.25), /* 下边缘金属凹陷暗部 */
-                inset 2px 0 2px rgba(255, 255, 255, 0.8),
-                inset -2px 0 2px rgba(100, 116, 139, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+                0 32px 75px rgba(15, 23, 42, 0.13),
+                0 10px 24px rgba(15, 23, 42, 0.05),
+                0 0 0 1px rgba(255, 255, 255, 1),
+                0 0 0 2px rgba(186, 199, 213, 0.45), /* 钻石切削镜面金属边 */
+                0 0 50px rgba(2, 132, 199, 0.06),
+                inset 0 2px 2px rgba(255, 255, 255, 1), /* 顶部高光倒角 */
+                inset 0 -2px 3px rgba(100, 116, 139, 0.18), /* 底部金属微倒角 */
+                inset 2px 0 2px rgba(255, 255, 255, 0.9),
+                inset -2px 0 2px rgba(148, 163, 184, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.95);
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             transform-style: preserve-3d;
@@ -159,11 +161,11 @@
         }
 
         .card-front {
-            transform: rotateY(0deg) translateZ(0.1px);
+            transform: rotateY(0deg) translateZ(1px);
         }
 
         .card-back {
-            transform: rotateY(180deg) translateZ(0.1px);
+            transform: rotateY(180deg) translateZ(1px);
         }
 
         .card-container.is-front .card-front,
@@ -176,49 +178,59 @@
             pointer-events: none;
         }
 
-        /* 金属拉光 / Specular Metallic Glare */
+        /* 动态高光斑点 / Dynamic Specular Light Following Mouse */
+        .card-shine {
+            position: absolute;
+            inset: 0;
+            border-radius: 26px;
+            background: radial-gradient(
+                700px circle at var(--shine-x) var(--shine-y),
+                rgba(255, 255, 255, 0.85) 0%,
+                rgba(255, 255, 255, 0.4) 22%,
+                rgba(230, 242, 255, 0.12) 42%,
+                transparent 70%
+            );
+            pointer-events: none;
+            z-index: 12;
+            opacity: var(--shine-opacity);
+            mix-blend-mode: overlay;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 金属各向异性全息反光条 / Anisotropic Metallic Glare */
         .glare {
             position: absolute;
             inset: -60%;
             background: linear-gradient(
-                110deg,
-                transparent 25%,
-                rgba(255, 255, 255, 0.15) 38%,
-                rgba(255, 255, 255, 0.65) 47%,
-                rgba(255, 255, 255, 0.95) 50%,
-                rgba(255, 255, 255, 0.65) 53%,
-                rgba(255, 255, 255, 0.15) 62%,
-                transparent 75%
+                112deg,
+                transparent 22%,
+                rgba(255, 255, 255, 0.08) 35%,
+                rgba(0, 229, 255, 0.08) 45%,
+                rgba(255, 255, 255, 0.85) 50%,
+                rgba(255, 235, 190, 0.08) 55%,
+                rgba(255, 255, 255, 0.08) 65%,
+                transparent 78%
             );
             transform: translateX(-100%);
             pointer-events: none;
-            z-index: 10;
+            z-index: 11;
+            mix-blend-mode: soft-light;
         }
 
-        /* 真实的横向拉丝金属微纹理 (Hairline Brushed Metal Texture) */
-        .noise-overlay {
-            position: absolute;
-            inset: 0;
-            opacity: 0.32;
-            mix-blend-mode: overlay;
-            pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='brushed'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23brushed)'/%3E%3C/svg%3E");
-            background-size: 320px 320px;
-        }
-
-        /* Meteor Animation System - 银色金属背景下的天青色激光划痕 */
+        /* 流光丝线 */
         .meteor-container {
             position: absolute;
             inset: 0;
             pointer-events: none;
             overflow: hidden;
+            z-index: 2;
         }
 
         .meteor {
             position: absolute;
-            width: 500px; 
+            width: 480px; 
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.02) 40%, rgba(2, 132, 199, 0.35));
+            background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.03) 40%, rgba(2, 132, 199, 0.35));
             opacity: 0;
             transform-origin: left center;
             animation: shoot var(--duration, 8s) var(--delay, 0s) infinite linear;
@@ -226,7 +238,6 @@
             left: var(--left, 50%);
         }
 
-        /* The bright head of the meteor */
         .meteor::after {
             content: '';
             position: absolute;
@@ -239,17 +250,17 @@
             box-shadow: 0 0 8px 2px var(--accent-glow), 0 0 2px #0284c7;
         }
 
-        /* 磨砂金属铝制音乐控制按钮 */
+        /* 亮银金属音乐按钮 */
         .music-toggle {
             position: fixed;
             top: max(16px, env(safe-area-inset-top));
             right: max(16px, env(safe-area-inset-right));
             z-index: 50;
-            width: 40px;
-            height: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.95);
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255, 255, 255, 1);
             border-radius: 999px;
-            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #d8e2ec 100%);
             color: #334155;
             display: flex;
             align-items: center;
@@ -258,32 +269,31 @@
             -webkit-backdrop-filter: blur(12px);
             box-shadow: 
                 0 8px 24px rgba(15, 23, 42, 0.12),
-                0 0 0 1px rgba(148, 163, 184, 0.35),
+                0 0 0 1px rgba(186, 199, 213, 0.5),
                 inset 0 1.5px 1.5px rgba(255, 255, 255, 1),
-                inset 0 -1.5px 1.5px rgba(71, 85, 105, 0.25);
+                inset 0 -1.5px 1.5px rgba(100, 116, 139, 0.2);
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .music-toggle:hover {
             color: var(--accent);
-            transform: scale(1.05);
+            transform: scale(1.06);
             box-shadow: 
-                0 10px 28px rgba(2, 132, 199, 0.2),
-                0 0 0 1px var(--accent);
+                0 10px 28px rgba(2, 132, 199, 0.22),
+                0 0 0 1.5px var(--accent);
         }
 
         .music-toggle svg {
-            width: 18px;
-            height: 18px;
+            width: 19px;
+            height: 19px;
             animation: music-spin 12s linear infinite;
         }
 
         .music-toggle.is-muted {
             color: #94a3b8;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
-            opacity: 0.8;
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+            opacity: 0.85;
         }
 
         .music-toggle.is-muted svg {
@@ -306,7 +316,7 @@
             position: absolute;
             width: 420px;
             height: 420px;
-            background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(2, 132, 199, 0.09) 0%, transparent 65%);
             border-radius: 50%;
             pointer-events: none;
             top: 50%;
@@ -316,16 +326,16 @@
 
         @keyframes pulse-glow {
             0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+            50% { opacity: 0.9; }
         }
 
         /* Typography */
         .font-serif { font-family: 'Playfair Display', serif; }
         
         .main-name {
-            color: #0f172a;
-            /* 激光镌刻微金属浮雕阴影 */
-            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.9), 0 -1px 1px rgba(100, 116, 139, 0.3);
+            color: #0b1320;
+            /* 激光锐利立体微阴影 */
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 1), 0 -1px 0.5px rgba(100, 116, 139, 0.2);
             letter-spacing: 0.03em;
         }
 
@@ -335,30 +345,30 @@
             text-transform: uppercase;
             color: #475569;
             font-weight: 500;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
         }
 
         .tagline {
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
         }
 
         .contact-item {
             font-size: 0.9rem;
             font-weight: 450;
             letter-spacing: 0.05em;
-            color: #334155;
+            color: #2c3848;
             display: flex;
             align-items: center;
             gap: 16px;
             transition: all 0.3s ease;
             cursor: pointer;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
         }
 
         .contact-item svg {
-            color: #64748b;
+            color: #5c6c7f;
             transition: all 0.3s ease;
-            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8));
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.9));
         }
 
         a.contact-item {
@@ -366,7 +376,7 @@
         }
 
         .contact-item:hover {
-            color: #0f172a;
+            color: #0b1320;
             transform: translateX(4px);
         }
         .contact-item:hover svg {
@@ -374,7 +384,7 @@
             filter: drop-shadow(0 0 6px var(--accent-glow));
         }
 
-        /* 金属嵌盘 QR Code Dock */
+        /* 亮银金属嵌盘 QR Code Dock */
         .qr-container {
             display: flex;
             flex-direction: column;
@@ -385,17 +395,17 @@
         .qr-box {
             width: 130px;
             height: 130px;
-            border: 1px solid rgba(148, 163, 184, 0.4);
-            border-radius: 14px;
+            border: 1px solid rgba(186, 199, 213, 0.6);
+            border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            background: linear-gradient(145deg, #e2e8f0 0%, #ffffff 100%);
+            background: linear-gradient(145deg, #e9eff5 0%, #ffffff 100%);
             box-shadow: 
-                inset 0 2px 4px rgba(15, 23, 42, 0.1),
-                inset 0 -1px 2px rgba(255, 255, 255, 0.95),
-                0 6px 18px rgba(15, 23, 42, 0.08);
+                inset 0 2px 4px rgba(15, 23, 42, 0.08),
+                inset 0 -1px 2px rgba(255, 255, 255, 1),
+                0 6px 18px rgba(15, 23, 42, 0.07);
             transition: all 0.3s ease;
             overflow: hidden;
         }
@@ -407,7 +417,7 @@
             border-radius: 8px;
             background: #ffffff;
             padding: 4px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
             position: relative;
             z-index: 2;
         }
@@ -417,17 +427,17 @@
             content: '';
             position: absolute;
             inset: -1px;
-            border-radius: 15px;
+            border-radius: 16px;
             padding: 1.5px;
             background: conic-gradient(
                 from var(--border-angle),
                 transparent 0%,
                 transparent 20%,
-                rgba(2, 132, 199, 0.15) 40%,
+                rgba(2, 132, 199, 0.18) 40%,
                 var(--accent) 50%,
                 transparent 50%,
                 transparent 70%,
-                rgba(2, 132, 199, 0.15) 90%,
+                rgba(2, 132, 199, 0.18) 90%,
                 var(--accent) 100%
             );
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -455,7 +465,7 @@
             align-items: center;
             text-align: center;
             color: var(--text-muted);
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
         }
 
         .qr-text-main {
@@ -464,13 +474,13 @@
             font-weight: 600;
             text-transform: uppercase;
             margin-bottom: 4px;
-            color: #1e293b;
+            color: #1a2533;
         }
 
         .qr-text-sub {
             font-size: 0.6rem;
             letter-spacing: 0.1em;
-            color: #64748b;
+            color: #5c6c7f;
         }
 
         /* 响应式缩放 */
@@ -628,12 +638,12 @@
         </div>
 
         <!-- 卡片包裹层 -->
-        <div class="card-wrapper">
+        <div class="card-wrapper" id="card-wrapper">
             <div class="card-container" id="card">
                 
                 <!-- 卡片正面 (英文) -->
                 <div class="card-face card-front">
-                    <div class="noise-overlay"></div>
+                    <div class="card-shine"></div>
                     <div class="meteor-container">
                         <div class="meteor" style="--top: 15%; --left: -10%; --angle: 25deg; --duration: 15s; --delay: 0.5s;"></div>
                         <div class="meteor" style="--top: 65%; --left: -10%; --angle: 25deg; --duration: 20s; --delay: 3s;"></div>
@@ -676,7 +686,7 @@
 
                         <!-- CNC 铣削微凹槽刻线 Milled Divider Line -->
                         <div class="milled-divider h-1/2 flex items-center mx-6">
-                            <div class="w-[1px] h-full bg-slate-400/50"></div>
+                            <div class="w-[1px] h-full bg-slate-400/40"></div>
                             <div class="w-[1px] h-full bg-white/95"></div>
                         </div>
 
@@ -697,7 +707,7 @@
 
                 <!-- 卡片背面 (中文) -->
                 <div class="card-face card-back">
-                    <div class="noise-overlay"></div>
+                    <div class="card-shine"></div>
                     <div class="meteor-container">
                         <div class="meteor" style="--top: 25%; --left: -10%; --angle: 25deg; --duration: 18s; --delay: 1s;"></div>
                         <div class="meteor" style="--top: 75%; --left: -10%; --angle: 25deg; --duration: 15s; --delay: 4s;"></div>
@@ -740,7 +750,7 @@
 
                         <!-- CNC 铣削微凹槽刻线 Milled Divider Line -->
                         <div class="milled-divider h-1/2 flex items-center mx-6">
-                            <div class="w-[1px] h-full bg-slate-400/50"></div>
+                            <div class="w-[1px] h-full bg-slate-400/40"></div>
                             <div class="w-[1px] h-full bg-white/95"></div>
                         </div>
 
@@ -765,6 +775,7 @@
 
     <script>
         const card = document.getElementById('card');
+        const cardWrapper = document.getElementById('card-wrapper');
         const appContainer = document.getElementById('app-container');
         const glareFront = document.getElementById('glare-front');
         const glareBack = document.getElementById('glare-back');
@@ -776,19 +787,33 @@
         let isDragging = false;
         let startX = 0;
         let startY = 0;
-        let currentRotationY = 0; // The actual persistent rotation
-        let visualRotationY = 0;  // The rotation during drag
+        let currentFlipY = 0; // The base persistent rotation Y (0, 180, 360...)
+        let visualFlipY = 0;  // Real-time rotation Y from dragging/inertia
         let lastX = 0;
         let lastY = 0;
         let dragAxis = 'x';
         let lastMoveTime = 0;
         let velocityY = 0;
         let inertiaFrame = null;
-        
-        // Window dimensions for sensitivity calculation
+        let isHovering = false;
+
+        // Mouse Parallax & Autonomous Floating Tilt State
+        let targetTiltX = 0; // Pitch (deg)
+        let targetTiltY = 0; // Yaw (deg)
+        let currentTiltX = 0;
+        let currentTiltY = 0;
+        let currentFloatY = 0;
+        let shineX = 50;
+        let shineY = 50;
+        let targetShineX = 50;
+        let targetShineY = 50;
+
         let interactionWidth = appContainer.clientWidth || window.innerWidth;
+        let interactionHeight = appContainer.clientHeight || window.innerHeight;
+
         window.addEventListener('resize', () => {
             interactionWidth = appContainer.clientWidth || window.innerWidth;
+            interactionHeight = appContainer.clientHeight || window.innerHeight;
         });
 
         function isMobilePortraitLayout() {
@@ -796,23 +821,20 @@
         }
 
         function getDragCoord(e) {
-            if (dragAxis === 'y') {
-                return e.clientY;
-            }
-            return e.clientX;
+            return dragAxis === 'y' ? e.clientY : e.clientX;
         }
 
         function isInteractiveLink(e) {
             return Boolean(e.target.closest('a.contact-item'));
         }
 
-        // Helper to hide hint after first interaction
         function hideHint() {
-            if(hintText.style.opacity !== '0') {
+            if (hintText && hintText.style.opacity !== '0') {
                 hintText.style.opacity = '0';
             }
         }
 
+        // Music Controls
         function setMusicMuted(isMuted) {
             bgm.muted = isMuted;
             musicToggle.classList.toggle('is-muted', isMuted);
@@ -845,21 +867,17 @@
             }
         }, { once: true });
 
-        // Apply visual updates to rotation and lighting
-        function applyTransform(rotation) {
-            // Apply 3D rotation to the card container
-            card.style.transform = `rotateY(${rotation}deg)`;
-
-            // Calculate Glare (lighting) effect based on rotation
-            let normalizedRotation = rotation % 360;
+        // Update Glare and Specular reflections based on angles
+        function updateLighting(rotationY, tiltX, tiltY) {
+            let normalizedRotation = rotationY % 360;
             if (normalizedRotation < 0) normalizedRotation += 360;
 
             const backIsVisible = normalizedRotation > 90 && normalizedRotation < 270;
             card.classList.toggle('is-back', backIsVisible);
             card.classList.toggle('is-front', !backIsVisible);
 
-            const frontDelta = ((normalizedRotation + 180) % 360) - 180;
-            const backDelta = ((normalizedRotation - 180 + 540) % 360) - 180;
+            const frontDelta = (((normalizedRotation + 180) % 360) - 180) + (tiltY * 1.5);
+            const backDelta = (((normalizedRotation - 180 + 540) % 360) - 180) - (tiltY * 1.5);
             const glareEntryAngle = 65;
             const glareMax = 120;
 
@@ -874,8 +892,80 @@
 
             let backGlarePos = glarePosition(backDelta);
             glareBack.style.transform = `translateX(${backGlarePos}%)`;
+
+            // Dynamic Shine hotspot custom properties
+            document.documentElement.style.setProperty('--shine-x', `${shineX.toFixed(1)}%`);
+            document.documentElement.style.setProperty('--shine-y', `${shineY.toFixed(1)}%`);
         }
 
+        // Render Loop: Smooth Lerp Tilt + Autonomous Floating + 3D Transform
+        function renderLoop(time) {
+            const lerpFactor = 0.08;
+
+            // Autonomous floating breathing motion (自有浮动/自由旋转呼吸感)
+            const t = time * 0.0015;
+            const autoFloatY = Math.sin(t) * 10;
+            const autoTiltX = Math.cos(t * 0.8) * 2.5;
+            const autoTiltY = Math.sin(t * 0.7) * 3.5;
+
+            // Lerp mouse tilt towards target
+            currentTiltX += (targetTiltX - currentTiltX) * lerpFactor;
+            currentTiltY += (targetTiltY - currentTiltY) * lerpFactor;
+            currentFloatY += (autoFloatY - currentFloatY) * lerpFactor;
+
+            shineX += (targetShineX - shineX) * 0.1;
+            shineY += (targetShineY - shineY) * 0.1;
+
+            const finalTiltX = currentTiltX + autoTiltX;
+            const finalTiltY = (isDragging ? 0 : currentTiltY) + autoTiltY;
+
+            // Apply combined transform:
+            // 1. cardWrapper receives the vertical floating translation and slight X tilt
+            cardWrapper.style.transform = `translateY(${currentFloatY}px) rotateX(${finalTiltX}deg)`;
+
+            // 2. cardContainer receives the Flip rotation (from drag) plus mouse-induced Yaw (TiltY)
+            const totalRotationY = visualFlipY + finalTiltY;
+            card.style.transform = `rotateY(${totalRotationY}deg)`;
+
+            updateLighting(visualFlipY, finalTiltX, finalTiltY);
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        requestAnimationFrame(renderLoop);
+
+        // Mouse Parallax & Dynamic Hover Tilt (Cloudflare / Apple Card style)
+        window.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'mouse' && !isDragging) {
+                isHovering = true;
+                const rect = appContainer.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const normX = (e.clientX - centerX) / (rect.width / 2);
+                const normY = (e.clientY - centerY) / (rect.height / 2);
+
+                // 幅度更轻柔、但倾角范围更大 (Max ±14deg Pitch, ±16deg Yaw)
+                targetTiltX = -normY * 13;
+                targetTiltY = normX * 16;
+
+                // Shine hotspot directly tracks the cursor on the card
+                targetShineX = ((e.clientX - rect.left) / rect.width) * 100;
+                targetShineY = ((e.clientY - rect.top) / rect.height) * 100;
+                document.documentElement.style.setProperty('--shine-opacity', '0.9');
+            }
+        });
+
+        window.addEventListener('pointerleave', () => {
+            isHovering = false;
+            targetTiltX = 0;
+            targetTiltY = 0;
+            targetShineX = 50;
+            targetShineY = 50;
+            document.documentElement.style.setProperty('--shine-opacity', '0.6');
+        });
+
+        // 3D Drag-To-Flip Physics
         function cancelInertia() {
             if (inertiaFrame) {
                 cancelAnimationFrame(inertiaFrame);
@@ -884,10 +974,9 @@
         }
 
         function snapToNearestFace(rotation) {
-            currentRotationY = Math.round(rotation / 180) * 180;
-            visualRotationY = currentRotationY;
+            currentFlipY = Math.round(rotation / 180) * 180;
+            visualFlipY = currentFlipY;
             card.classList.remove('dragging');
-            applyTransform(currentRotationY);
         }
 
         function commitTouchFlipIfNeeded(rotation) {
@@ -895,16 +984,15 @@
                 return false;
             }
 
-            const deltaRotation = rotation - currentRotationY;
+            const deltaRotation = rotation - currentFlipY;
             const touchFlipThreshold = 32;
             if (Math.abs(deltaRotation) < touchFlipThreshold) {
                 return false;
             }
 
-            currentRotationY += deltaRotation > 0 ? 180 : -180;
-            visualRotationY = currentRotationY;
+            currentFlipY += deltaRotation > 0 ? 180 : -180;
+            visualFlipY = currentFlipY;
             card.classList.remove('dragging');
-            applyTransform(currentRotationY);
             return true;
         }
 
@@ -919,8 +1007,7 @@
                 const deltaTime = Math.min(now - lastFrameTime, 32);
                 lastFrameTime = now;
 
-                visualRotationY += velocity * deltaTime;
-                applyTransform(visualRotationY);
+                visualFlipY += velocity * deltaTime;
 
                 velocity *= Math.pow(0.94, deltaTime / 16.67);
 
@@ -930,13 +1017,12 @@
                 }
 
                 inertiaFrame = null;
-                snapToNearestFace(visualRotationY);
+                snapToNearestFace(visualFlipY);
             };
 
             inertiaFrame = requestAnimationFrame(animate);
         }
 
-        // Interaction Event Listeners (Mouse & Touch)
         appContainer.addEventListener('pointerdown', (e) => {
             if (isInteractiveLink(e)) {
                 return;
@@ -944,6 +1030,7 @@
 
             cancelInertia();
             isDragging = true;
+            appContainer.classList.add('is-dragging');
             startX = e.clientX;
             startY = e.clientY;
             lastX = e.clientX;
@@ -953,7 +1040,6 @@
             velocityY = 0;
             
             card.classList.add('dragging');
-            card.style.animation = 'none'; 
             hideHint();
             appContainer.setPointerCapture?.(e.pointerId);
         });
@@ -971,19 +1057,18 @@
             const sensitivitySpan = activeSpan * (dragAxis === 'y' ? 0.34 : 0.42);
             const rotationSensitivity = 180 / Math.max(sensitivitySpan, 220);
             
-            visualRotationY = currentRotationY + (delta * rotationSensitivity);
+            visualFlipY = currentFlipY + (delta * rotationSensitivity);
             const deltaTime = Math.max(now - lastMoveTime, 1);
             velocityY = ((currentCoord - previousCoord) * rotationSensitivity) / deltaTime;
             lastX = e.clientX;
             lastY = e.clientY;
             lastMoveTime = now;
-            applyTransform(visualRotationY);
         });
 
         const endDrag = (e) => {
             if (!isDragging) return;
             isDragging = false;
-            
+            appContainer.classList.remove('is-dragging');
             card.classList.remove('dragging');
 
             appContainer.releasePointerCapture?.(e.pointerId);
@@ -993,19 +1078,16 @@
                 return;
             }
 
-            if (commitTouchFlipIfNeeded(visualRotationY)) {
+            if (commitTouchFlipIfNeeded(visualFlipY)) {
                 return;
             }
 
-            snapToNearestFace(visualRotationY);
+            snapToNearestFace(visualFlipY);
         };
 
         appContainer.addEventListener('pointerup', endDrag);
         appContainer.addEventListener('pointercancel', endDrag);
         appContainer.addEventListener('pointerleave', endDrag);
-
-        // Initialize default appearance
-        applyTransform(0);
 
     </script>
 </body>
