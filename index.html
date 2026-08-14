@@ -14,13 +14,13 @@
         :root {
             --card-width: 800px;
             --card-height: 480px;
-            --bg-color: #f1f4f9;
-            --card-color: #ffffff;
+            --bg-color: #dbe2ea;
+            --card-color: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
-            /* 浅色系高级科技感湛蓝/天青点睛色 */
+            /* 银色金属基底上的高级激光科技蓝 */
             --accent: #0284c7; 
-            --accent-glow: rgba(2, 132, 199, 0.25);
+            --accent-glow: rgba(2, 132, 199, 0.3);
         }
 
         @property --border-angle {
@@ -33,7 +33,7 @@
             margin: 0;
             padding: 0;
             background:
-                radial-gradient(circle at 50% 38%, #ffffff 0%, #f1f4f9 45%, #e2e7ef 100%);
+                radial-gradient(circle at 50% 36%, #ffffff 0%, #edf2f7 42%, #d5dde6 100%);
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
@@ -48,7 +48,7 @@
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(circle at 50% 38%, #ffffff 0%, #f1f4f9 45%, #e2e7ef 100%);
+                radial-gradient(circle at 50% 38%, #ffffff 0%, #edf2f7 45%, #d5dde6 100%);
             background-color: var(--bg-color);
             z-index: 9999;
             flex-direction: column;
@@ -81,11 +81,10 @@
             width: 100vw;
             height: 100vh;
             perspective: 1500px; /* Gives the 3D depth */
-            /* Prevent scrolling while dragging */
             touch-action: none;
         }
 
-        /* 外层包裹器，专门负责悬浮呼吸动画，避免和 JS 的翻转动作冲突 */
+        /* 外层包裹器，负责悬浮呼吸动画，避免和 JS 的翻转动作冲突 */
         .card-wrapper {
             width: 100%;
             max-width: 800px;
@@ -93,7 +92,6 @@
             position: relative;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
-            /* 6秒一个周期的柔和呼吸动画 */
             animation: breathe 6s ease-in-out infinite;
         }
 
@@ -103,37 +101,49 @@
             position: absolute;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
-            /* Transition for snapping effect */
             transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
         }
 
-        /* Remove transition during active dragging for immediate 1:1 physics */
         .card-container.dragging {
             transition: none;
         }
 
-        /* 更具有呼吸感和有机感的悬浮动效 */
+        /* 悬浮动效 */
         @keyframes breathe {
             0%, 100% { transform: translateY(0px) rotateX(1deg); }
             50% { transform: translateY(-14px) rotateX(-1deg); }
         }
 
-        /* Card Faces - 优雅浅色陶瓷/珠光材质 */
+        /* Card Faces - 航空级阳极氧化拉丝银/钛银质感 */
         .card-face {
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 46%, #f0f4f8 100%);
+            background: 
+                linear-gradient(
+                    125deg,
+                    #ffffff 0%,
+                    #f1f5f9 12%,
+                    #d5dde8 26%,
+                    #ffffff 40%,
+                    #e6ecf3 54%,
+                    #cbd6e2 70%,
+                    #f8fafc 86%,
+                    #d9e2ec 100%
+                );
             border-radius: 24px;
             box-shadow: 
-                0 30px 70px rgba(15, 23, 42, 0.08),
-                0 10px 25px rgba(15, 23, 42, 0.04),
-                0 0 0 1px rgba(255, 255, 255, 0.9),
-                0 0 45px rgba(2, 132, 199, 0.04),
-                inset 0 1px 2px rgba(255, 255, 255, 0.95),
-                inset 0 -1px 2px rgba(15, 23, 42, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.85);
-            backface-visibility: hidden; /* Crucial for 3D flip */
+                0 35px 85px rgba(15, 23, 42, 0.16),
+                0 12px 30px rgba(15, 23, 42, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.95),
+                0 0 0 2px rgba(148, 163, 184, 0.35), /* 精密 CNC 铣边金属线 */
+                0 0 50px rgba(2, 132, 199, 0.05),
+                inset 0 2px 2px rgba(255, 255, 255, 1), /* 上边缘倒角亮边 */
+                inset 0 -2px 3px rgba(71, 85, 105, 0.25), /* 下边缘金属凹陷暗部 */
+                inset 2px 0 2px rgba(255, 255, 255, 0.8),
+                inset -2px 0 2px rgba(100, 116, 139, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
@@ -166,34 +176,37 @@
             pointer-events: none;
         }
 
-        /* Dynamic Lighting/Glare Effect - 浅色高光反光 */
+        /* 金属拉光 / Specular Metallic Glare */
         .glare {
             position: absolute;
-            inset: -50%;
+            inset: -60%;
             background: linear-gradient(
-                105deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.35) 45%,
-                rgba(255, 255, 255, 0.7) 50%,
-                rgba(255, 255, 255, 0.35) 55%,
-                transparent 70%
+                110deg,
+                transparent 25%,
+                rgba(255, 255, 255, 0.15) 38%,
+                rgba(255, 255, 255, 0.65) 47%,
+                rgba(255, 255, 255, 0.95) 50%,
+                rgba(255, 255, 255, 0.65) 53%,
+                rgba(255, 255, 255, 0.15) 62%,
+                transparent 75%
             );
             transform: translateX(-100%);
             pointer-events: none;
             z-index: 10;
         }
 
-        /* Subtle Noise Texture for Matte Ceramic Finish */
+        /* 真实的横向拉丝金属微纹理 (Hairline Brushed Metal Texture) */
         .noise-overlay {
             position: absolute;
             inset: 0;
-            opacity: 0.12;
-            mix-blend-mode: multiply;
+            opacity: 0.32;
+            mix-blend-mode: overlay;
             pointer-events: none;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='brushed'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23brushed)'/%3E%3C/svg%3E");
+            background-size: 320px 320px;
         }
 
-        /* Meteor Animation System - 浅色系流光丝线 */
+        /* Meteor Animation System - 银色金属背景下的天青色激光划痕 */
         .meteor-container {
             position: absolute;
             inset: 0;
@@ -205,7 +218,7 @@
             position: absolute;
             width: 500px; 
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.02) 40%, rgba(2, 132, 199, 0.3));
+            background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.02) 40%, rgba(2, 132, 199, 0.35));
             opacity: 0;
             transform-origin: left center;
             animation: shoot var(--duration, 8s) var(--delay, 0s) infinite linear;
@@ -226,30 +239,38 @@
             box-shadow: 0 0 8px 2px var(--accent-glow), 0 0 2px #0284c7;
         }
 
+        /* 磨砂金属铝制音乐控制按钮 */
         .music-toggle {
             position: fixed;
             top: max(16px, env(safe-area-inset-top));
             right: max(16px, env(safe-area-inset-right));
             z-index: 50;
-            width: 38px;
-            height: 38px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.95);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.82);
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%);
             color: #334155;
             display: flex;
             align-items: center;
             justify-content: center;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255,255,255,0.95);
+            box-shadow: 
+                0 8px 24px rgba(15, 23, 42, 0.12),
+                0 0 0 1px rgba(148, 163, 184, 0.35),
+                inset 0 1.5px 1.5px rgba(255, 255, 255, 1),
+                inset 0 -1.5px 1.5px rgba(71, 85, 105, 0.25);
             cursor: pointer;
-            transition: color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+            transition: all 0.25s ease;
         }
 
         .music-toggle:hover {
             color: var(--accent);
-            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.15);
+            transform: scale(1.05);
+            box-shadow: 
+                0 10px 28px rgba(2, 132, 199, 0.2),
+                0 0 0 1px var(--accent);
         }
 
         .music-toggle svg {
@@ -260,8 +281,9 @@
 
         .music-toggle.is-muted {
             color: #94a3b8;
-            border-color: rgba(0, 0, 0, 0.06);
-            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.6);
+            background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+            opacity: 0.8;
         }
 
         .music-toggle.is-muted svg {
@@ -279,12 +301,12 @@
             100% { transform: rotate(var(--angle, 0deg)) translateX(1600px); opacity: 0; }
         }
 
-        /* Ambient Glow */
+        /* 漫反射氛围光 */
         .card-glow {
             position: absolute;
             width: 420px;
             height: 420px;
-            background: radial-gradient(circle, rgba(2, 132, 199, 0.06) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, transparent 65%);
             border-radius: 50%;
             pointer-events: none;
             top: 50%;
@@ -300,17 +322,29 @@
         /* Typography */
         .font-serif { font-family: 'Playfair Display', serif; }
         
+        .main-name {
+            color: #0f172a;
+            /* 激光镌刻微金属浮雕阴影 */
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.9), 0 -1px 1px rgba(100, 116, 139, 0.3);
+            letter-spacing: 0.03em;
+        }
+
         .slogan {
             font-size: 0.8rem;
             letter-spacing: 0.35em;
             text-transform: uppercase;
-            color: #64748b;
-            font-weight: 400;
+            color: #475569;
+            font-weight: 500;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .tagline {
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
         }
 
         .contact-item {
             font-size: 0.9rem;
-            font-weight: 400;
+            font-weight: 450;
             letter-spacing: 0.05em;
             color: #334155;
             display: flex;
@@ -318,28 +352,29 @@
             gap: 16px;
             transition: all 0.3s ease;
             cursor: pointer;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .contact-item svg {
             color: #64748b;
             transition: all 0.3s ease;
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8));
         }
 
         a.contact-item {
             text-decoration: none;
         }
 
-        /* 鼠标悬停时的呼吸感互动 */
         .contact-item:hover {
             color: #0f172a;
             transform: translateX(4px);
         }
         .contact-item:hover svg {
             color: var(--accent);
-            filter: drop-shadow(0 0 5px var(--accent-glow));
+            filter: drop-shadow(0 0 6px var(--accent-glow));
         }
 
-        /* QR Code */
+        /* 金属嵌盘 QR Code Dock */
         .qr-container {
             display: flex;
             flex-direction: column;
@@ -350,14 +385,17 @@
         .qr-box {
             width: 130px;
             height: 130px;
-            border: 1px solid rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(148, 163, 184, 0.4);
             border-radius: 14px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            background: #ffffff;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.9), 0 8px 20px rgba(15, 23, 42, 0.06);
+            background: linear-gradient(145deg, #e2e8f0 0%, #ffffff 100%);
+            box-shadow: 
+                inset 0 2px 4px rgba(15, 23, 42, 0.1),
+                inset 0 -1px 2px rgba(255, 255, 255, 0.95),
+                0 6px 18px rgba(15, 23, 42, 0.08);
             transition: all 0.3s ease;
             overflow: hidden;
         }
@@ -369,7 +407,7 @@
             border-radius: 8px;
             background: #ffffff;
             padding: 4px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
             position: relative;
             z-index: 2;
         }
@@ -385,11 +423,11 @@
                 from var(--border-angle),
                 transparent 0%,
                 transparent 20%,
-                rgba(2, 132, 199, 0.12) 40%,
+                rgba(2, 132, 199, 0.15) 40%,
                 var(--accent) 50%,
                 transparent 50%,
                 transparent 70%,
-                rgba(2, 132, 199, 0.12) 90%,
+                rgba(2, 132, 199, 0.15) 90%,
                 var(--accent) 100%
             );
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -417,6 +455,7 @@
             align-items: center;
             text-align: center;
             color: var(--text-muted);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .qr-text-main {
@@ -519,7 +558,7 @@
                 gap: 1rem;
             }
 
-            .card-face .border-l {
+            .milled-divider {
                 margin-left: 0.95rem !important;
                 margin-right: 0.95rem !important;
             }
@@ -584,7 +623,7 @@
     <div id="app-container">
         
         <!-- Instructional hint text -->
-        <div class="absolute top-8 left-1/2 -translate-x-1/2 text-xs tracking-[0.3em] text-slate-400 font-light z-0 uppercase pointer-events-none transition-opacity duration-1000" id="hint-text">
+        <div class="absolute top-8 left-1/2 -translate-x-1/2 text-xs tracking-[0.3em] text-slate-500 font-light z-0 uppercase pointer-events-none transition-opacity duration-1000" id="hint-text">
             Swipe to flip / 左右滑动翻转
         </div>
 
@@ -611,11 +650,11 @@
                         
                         <!-- Left: Name, Slogan and Contact -->
                         <div class="flex flex-col justify-center">
-                            <h1 class="font-serif text-5xl md:text-6xl font-normal tracking-wide text-slate-900 mb-3">
+                            <h1 class="main-name font-serif text-5xl md:text-6xl font-normal mb-3">
                                 Jed Liu
                             </h1>
                             <div class="slogan mb-3">AI First <span style="color: var(--accent); text-shadow: 0 0 8px var(--accent-glow);">✕</span> Global Trade</div>
-                            <div class="tagline text-[11px] text-slate-500 tracking-[0.15em] font-light mb-10 uppercase">
+                            <div class="tagline text-[11px] text-slate-500 tracking-[0.15em] font-medium mb-10 uppercase">
                                 AI Automation <span class="mx-1 opacity-50">·</span> Global Trade <span class="mx-1 opacity-50">·</span> Personal Brand
                             </div>
                             
@@ -626,17 +665,20 @@
                                 </a>
                                 <a class="contact-item" href="https://wa.me/8617686403091" target="_blank" rel="noopener noreferrer">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                    <span>+86 176 8640 3091 <span class="text-slate-400 text-xs ml-2 tracking-wider">WHATSAPP</span></span>
+                                    <span>+86 176 8640 3091 <span class="text-slate-500 text-xs ml-2 font-medium tracking-wider">WHATSAPP</span></span>
                                 </a>
                                 <a class="contact-item" href="https://jedliuai.com" target="_blank" rel="noopener noreferrer">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                                    <span>https://jedliuai.com <span class="text-slate-400 text-xs ml-2 tracking-wider uppercase">PERSONAL WEBSITE</span></span>
+                                    <span>https://jedliuai.com <span class="text-slate-500 text-xs ml-2 font-medium tracking-wider uppercase">PERSONAL WEBSITE</span></span>
                                 </a>
                             </div>
                         </div>
 
-                        <!-- Divider Line -->
-                        <div class="h-1/2 border-l border-slate-200/80 mx-6"></div>
+                        <!-- CNC 铣削微凹槽刻线 Milled Divider Line -->
+                        <div class="milled-divider h-1/2 flex items-center mx-6">
+                            <div class="w-[1px] h-full bg-slate-400/50"></div>
+                            <div class="w-[1px] h-full bg-white/95"></div>
+                        </div>
 
                         <!-- Right: QR Code -->
                         <div class="flex flex-col items-center justify-center pe-4">
@@ -672,11 +714,11 @@
                         
                         <!-- Left: Name, Slogan and Contact -->
                         <div class="flex flex-col justify-center">
-                            <h1 class="font-serif text-5xl md:text-6xl font-normal tracking-wide text-slate-900 mb-3 flex items-baseline gap-4">
+                            <h1 class="main-name font-serif text-5xl md:text-6xl font-normal mb-3 flex items-baseline gap-4">
                                 Jed Liu 
                             </h1>
                             <div class="slogan mb-3">AI First <span style="color: var(--accent); text-shadow: 0 0 8px var(--accent-glow);">✕</span> 国际贸易</div>
-                            <div class="tagline text-[11px] text-slate-500 tracking-[0.15em] font-light mb-10">
+                            <div class="tagline text-[11px] text-slate-500 tracking-[0.15em] font-medium mb-10">
                                 AI 自动化 <span class="mx-1 opacity-50">·</span> 国际贸易 <span class="mx-1 opacity-50">·</span> 个人IP
                             </div>
                             
@@ -687,17 +729,20 @@
                                 </a>
                                 <a class="contact-item" href="tel:+8617686403091">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                                    <span>+86 176 8640 3091 <span class="text-slate-400 text-xs ml-2 tracking-wider">WECHAT</span></span>
+                                    <span>+86 176 8640 3091 <span class="text-slate-500 text-xs ml-2 font-medium tracking-wider">WECHAT</span></span>
                                 </a>
                                 <a class="contact-item" href="https://jedliuai.com" target="_blank" rel="noopener noreferrer">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                                    <span>https://jedliuai.com <span class="text-slate-400 text-xs ml-2 tracking-wider">个人主页</span></span>
+                                    <span>https://jedliuai.com <span class="text-slate-500 text-xs ml-2 font-medium tracking-wider">个人主页</span></span>
                                 </a>
                             </div>
                         </div>
 
-                        <!-- Divider Line -->
-                        <div class="h-1/2 border-l border-slate-200/80 mx-6"></div>
+                        <!-- CNC 铣削微凹槽刻线 Milled Divider Line -->
+                        <div class="milled-divider h-1/2 flex items-center mx-6">
+                            <div class="w-[1px] h-full bg-slate-400/50"></div>
+                            <div class="w-[1px] h-full bg-white/95"></div>
+                        </div>
 
                         <!-- Right: QR Code -->
                         <div class="flex flex-col items-center justify-center pe-4">
