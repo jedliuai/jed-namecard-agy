@@ -903,7 +903,7 @@
         });
 
         function isMobilePortraitLayout() {
-            return window.matchMedia('(orientation: portrait)').matches && window.matchMedia('(pointer: coarse)').matches;
+            return window.innerHeight > window.innerWidth || window.matchMedia('(orientation: portrait)').matches;
         }
 
         function getDragCoord(e) {
@@ -947,34 +947,38 @@
             }
         });
 
-        // Mobile Sensor & Gyroscope Initialization
-        let sensorsInitialized = false;
-        function initSensors() {
-            if (sensorsInitialized) return;
-            sensorsInitialized = true;
+        // Mobile Sensor & Gyroscope Initialization (Auto-start for Chrome/Android + Permission request for iOS)
+        function startOrientationListeners() {
+            window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+            window.addEventListener('deviceorientationabsolute', handleOrientation, { passive: true });
+            if (typeof window.DeviceMotionEvent !== 'undefined') {
+                window.addEventListener('devicemotion', handleMotion, { passive: true });
+            }
+            isGyroAvailable = true;
+        }
 
+        function initSensors() {
             if (typeof window.DeviceOrientationEvent !== 'undefined') {
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                     // iOS 13+ requires explicit user gesture to grant sensor permission
                     DeviceOrientationEvent.requestPermission()
                         .then(response => {
                             if (response === 'granted') {
-                                window.addEventListener('deviceorientation', handleOrientation, { passive: true });
-                                isGyroAvailable = true;
+                                startOrientationListeners();
                             }
                         })
                         .catch(() => {});
                 } else {
-                    // Android & non-iOS standard browsers
-                    window.addEventListener('deviceorientation', handleOrientation, { passive: true });
-                    isGyroAvailable = true;
+                    // Android Chrome & non-iOS standard browsers: Start immediately
+                    startOrientationListeners();
                 }
-            }
-
-            if (typeof window.DeviceMotionEvent !== 'undefined') {
-                window.addEventListener('devicemotion', handleMotion, { passive: true });
+            } else {
+                startOrientationListeners();
             }
         }
+
+        // Immediately start on page load (standard Android Chrome)
+        initSensors();
 
         function handleOrientation(e) {
             if (e.beta === null || e.gamma === null) return;
@@ -984,34 +988,35 @@
             const rawPitch = e.beta;  // [-180, 180] (tilt forward/backward)
             const rawRoll = e.gamma;  // [-90, 90] (tilt left/right)
 
+            // On first valid sensor reading, calibrate to current hand posture
             if (basePitch === null) {
-                basePitch = isPortrait ? 52 : 45;
-                baseRoll = 0;
+                basePitch = rawPitch;
+                baseRoll = rawRoll;
             }
 
-            // Smooth adaptive baseline filter to follow natural user holding angle
-            basePitch = basePitch * 0.996 + rawPitch * 0.004;
-            baseRoll = baseRoll * 0.996 + rawRoll * 0.004;
+            // Smooth adaptive baseline filter to follow slow postural drift
+            basePitch = basePitch * 0.995 + rawPitch * 0.005;
+            baseRoll = baseRoll * 0.995 + rawRoll * 0.005;
 
-            const deltaPitch = Math.max(-42, Math.min(42, rawPitch - basePitch));
-            const deltaRoll = Math.max(-42, Math.min(42, rawRoll - baseRoll));
+            const deltaPitch = Math.max(-45, Math.min(45, rawPitch - basePitch));
+            const deltaRoll = Math.max(-45, Math.min(45, rawRoll - baseRoll));
 
             if (isPortrait) {
                 // In rotated portrait mode (card is visually rotated 90deg clockwise):
                 // Phone vertical tilt (pitch/beta) maps to Card horizontal yaw (tiltY)
                 // Phone horizontal roll (roll/gamma) maps to Card vertical pitch (tiltX)
-                targetTiltX = Math.max(-18, Math.min(18, -deltaRoll * 0.75));
-                targetTiltY = Math.max(-24, Math.min(24, deltaPitch * 0.85));
+                targetTiltX = Math.max(-24, Math.min(24, -deltaRoll * 1.2));
+                targetTiltY = Math.max(-28, Math.min(28, deltaPitch * 1.3));
             } else {
                 // Standard landscape orientation
-                targetTiltX = Math.max(-18, Math.min(18, -deltaPitch * 0.75));
-                targetTiltY = Math.max(-24, Math.min(24, deltaRoll * 0.85));
+                targetTiltX = Math.max(-24, Math.min(24, -deltaPitch * 1.2));
+                targetTiltY = Math.max(-28, Math.min(28, deltaRoll * 1.3));
             }
 
             // Dynamic metallic specular gleam following phone tilt
-            targetShineX = 50 + (targetTiltY / 24) * 42;
-            targetShineY = 50 - (targetTiltX / 18) * 42;
-            document.documentElement.style.setProperty('--shine-opacity', '0.85');
+            targetShineX = 50 + (targetTiltY / 28) * 45;
+            targetShineY = 50 - (targetTiltX / 24) * 45;
+            document.documentElement.style.setProperty('--shine-opacity', '0.88');
         }
 
         function handleMotion(e) {
@@ -1033,26 +1038,29 @@
             const jerk = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
             // Detected physical shake gesture -> inject spring impulse
-            if (jerk > 4.8) {
+            if (jerk > 4.5) {
                 const isPortrait = isMobilePortraitLayout();
                 if (isPortrait) {
-                    shakeVelocityX += dy * 2.4;
-                    shakeVelocityY += dx * 2.4;
+                    shakeVelocityX += dy * 2.6;
+                    shakeVelocityY += dx * 2.6;
                 } else {
-                    shakeVelocityX += dx * 2.4;
-                    shakeVelocityY += dy * 2.4;
+                    shakeVelocityX += dx * 2.6;
+                    shakeVelocityY += dy * 2.6;
                 }
-                shakeVelocityX = Math.max(-28, Math.min(28, shakeVelocityX));
-                shakeVelocityY = Math.max(-28, Math.min(28, shakeVelocityY));
+                shakeVelocityX = Math.max(-32, Math.min(32, shakeVelocityX));
+                shakeVelocityY = Math.max(-32, Math.min(32, shakeVelocityY));
             }
         }
 
-        document.addEventListener('pointerdown', () => {
+        const handleFirstInteraction = () => {
             initSensors();
             if (!bgm.muted && bgm.paused) {
                 tryPlayMusic();
             }
-        }, { once: true });
+        };
+
+        document.addEventListener('pointerdown', handleFirstInteraction, { once: true });
+        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
 
         // Update Glare and Specular reflections based on angles
         function updateLighting(rotationY, tiltX, tiltY) {
