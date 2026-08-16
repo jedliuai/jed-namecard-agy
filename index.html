@@ -156,9 +156,15 @@
             padding: 3rem 4rem;
         }
 
-        .card-face * {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+        /* 卡片核心内容层：赋予真实物理 Z 轴悬浮与最高交互优先级 */
+        .card-content {
+            position: relative;
+            z-index: 20;
+            transform: translateZ(8px);
+            -webkit-transform: translateZ(8px);
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            pointer-events: auto;
         }
 
         .card-front {
@@ -390,18 +396,28 @@
             font-weight: 450;
             letter-spacing: 0.05em;
             color: #243142;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 16px;
-            transition: all 0.3s ease;
+            gap: 14px;
+            padding: 7px 14px;
+            margin: -4px -14px;
+            border-radius: 10px;
+            transition: color 0.22s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.22s ease, box-shadow 0.22s ease;
             cursor: pointer;
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            position: relative;
+            z-index: 30;
+            pointer-events: auto;
+            touch-action: manipulation;
+            width: fit-content;
         }
 
         .contact-item svg {
             color: #556477;
-            transition: all 0.3s ease;
+            transition: color 0.22s ease, transform 0.22s ease, filter 0.22s ease;
             filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.9));
+            flex-shrink: 0;
         }
 
         a.contact-item {
@@ -409,12 +425,24 @@
         }
 
         .contact-item:hover {
-            color: #0b1320;
-            transform: translateX(4px);
+            color: var(--accent);
+            background: rgba(255, 255, 255, 0.62);
+            box-shadow: 
+                0 4px 14px rgba(15, 23, 42, 0.06),
+                0 0 0 1px rgba(2, 132, 199, 0.18),
+                inset 0 1px 1.5px rgba(255, 255, 255, 1);
+            transform: translateX(4px) translateZ(4px);
         }
+
         .contact-item:hover svg {
             color: var(--accent);
+            transform: scale(1.1);
             filter: drop-shadow(0 0 6px var(--accent-glow));
+        }
+
+        .contact-item:active {
+            transform: translateX(2px) scale(0.97);
+            background: rgba(255, 255, 255, 0.82);
         }
 
         /* 喷砂金属嵌盘 QR Code Dock */
@@ -583,6 +611,8 @@
                 font-size: 0.76rem;
                 gap: 10px;
                 white-space: nowrap;
+                padding: 4px 8px;
+                margin: -2px -8px;
             }
 
             .contact-item svg {
@@ -691,7 +721,7 @@
                     <div class="glare" id="glare-front"></div>
                     
                     <!-- Main Content -->
-                    <div class="flex items-center justify-between h-full w-full px-4 md:px-8 z-10">
+                    <div class="card-content flex items-center justify-between h-full w-full px-4 md:px-8">
                         
                         <!-- Left: Name, Slogan and Contact -->
                         <div class="flex flex-col justify-center">
@@ -757,7 +787,7 @@
                     <div class="glare" id="glare-back"></div>
                     
                     <!-- Main Content -->
-                    <div class="flex items-center justify-between h-full w-full px-4 md:px-8 z-10">
+                    <div class="card-content flex items-center justify-between h-full w-full px-4 md:px-8">
                         
                         <!-- Left: Name, Slogan and Contact -->
                         <div class="flex flex-col justify-center">
@@ -845,6 +875,25 @@
         let targetShineX = 50;
         let targetShineY = 50;
 
+        // Dynamic float damping when user hovers to stabilize clicks
+        let hoverDamping = 1;
+
+        // Mobile Sensor & Gyroscope Physics State
+        let isGyroAvailable = false;
+        let isGyroActive = false;
+        let basePitch = null;
+        let baseRoll = null;
+
+        // Shake Spring Simulation (Damped Harmonic Oscillator)
+        let shakeVelocityX = 0;
+        let shakeVelocityY = 0;
+        let shakeOffsetX = 0;
+        let shakeOffsetY = 0;
+        let lastAccelX = 0;
+        let lastAccelY = 0;
+        let lastAccelZ = 0;
+        let lastMotionTime = 0;
+
         let interactionWidth = appContainer.clientWidth || window.innerWidth;
         let interactionHeight = appContainer.clientHeight || window.innerHeight;
 
@@ -862,7 +911,7 @@
         }
 
         function isInteractiveLink(e) {
-            return Boolean(e.target.closest('a.contact-item'));
+            return Boolean(e.target.closest('a, button, .contact-item, .music-toggle, .qr-box'));
         }
 
         function hideHint() {
@@ -898,7 +947,108 @@
             }
         });
 
+        // Mobile Sensor & Gyroscope Initialization
+        let sensorsInitialized = false;
+        function initSensors() {
+            if (sensorsInitialized) return;
+            sensorsInitialized = true;
+
+            if (typeof window.DeviceOrientationEvent !== 'undefined') {
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    // iOS 13+ requires explicit user gesture to grant sensor permission
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response === 'granted') {
+                                window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+                                isGyroAvailable = true;
+                            }
+                        })
+                        .catch(() => {});
+                } else {
+                    // Android & non-iOS standard browsers
+                    window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+                    isGyroAvailable = true;
+                }
+            }
+
+            if (typeof window.DeviceMotionEvent !== 'undefined') {
+                window.addEventListener('devicemotion', handleMotion, { passive: true });
+            }
+        }
+
+        function handleOrientation(e) {
+            if (e.beta === null || e.gamma === null) return;
+            isGyroActive = true;
+
+            const isPortrait = isMobilePortraitLayout();
+            const rawPitch = e.beta;  // [-180, 180] (tilt forward/backward)
+            const rawRoll = e.gamma;  // [-90, 90] (tilt left/right)
+
+            if (basePitch === null) {
+                basePitch = isPortrait ? 52 : 45;
+                baseRoll = 0;
+            }
+
+            // Smooth adaptive baseline filter to follow natural user holding angle
+            basePitch = basePitch * 0.996 + rawPitch * 0.004;
+            baseRoll = baseRoll * 0.996 + rawRoll * 0.004;
+
+            const deltaPitch = Math.max(-42, Math.min(42, rawPitch - basePitch));
+            const deltaRoll = Math.max(-42, Math.min(42, rawRoll - baseRoll));
+
+            if (isPortrait) {
+                // In rotated portrait mode (card is visually rotated 90deg clockwise):
+                // Phone vertical tilt (pitch/beta) maps to Card horizontal yaw (tiltY)
+                // Phone horizontal roll (roll/gamma) maps to Card vertical pitch (tiltX)
+                targetTiltX = Math.max(-18, Math.min(18, -deltaRoll * 0.75));
+                targetTiltY = Math.max(-24, Math.min(24, deltaPitch * 0.85));
+            } else {
+                // Standard landscape orientation
+                targetTiltX = Math.max(-18, Math.min(18, -deltaPitch * 0.75));
+                targetTiltY = Math.max(-24, Math.min(24, deltaRoll * 0.85));
+            }
+
+            // Dynamic metallic specular gleam following phone tilt
+            targetShineX = 50 + (targetTiltY / 24) * 42;
+            targetShineY = 50 - (targetTiltX / 18) * 42;
+            document.documentElement.style.setProperty('--shine-opacity', '0.85');
+        }
+
+        function handleMotion(e) {
+            const acc = e.acceleration || e.accelerationIncludingGravity;
+            if (!acc) return;
+
+            const now = performance.now();
+            if (now - lastMotionTime < 16) return;
+            lastMotionTime = now;
+
+            const dx = (acc.x || 0) - lastAccelX;
+            const dy = (acc.y || 0) - lastAccelY;
+            const dz = (acc.z || 0) - lastAccelZ;
+
+            lastAccelX = acc.x || 0;
+            lastAccelY = acc.y || 0;
+            lastAccelZ = acc.z || 0;
+
+            const jerk = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            // Detected physical shake gesture -> inject spring impulse
+            if (jerk > 4.8) {
+                const isPortrait = isMobilePortraitLayout();
+                if (isPortrait) {
+                    shakeVelocityX += dy * 2.4;
+                    shakeVelocityY += dx * 2.4;
+                } else {
+                    shakeVelocityX += dx * 2.4;
+                    shakeVelocityY += dy * 2.4;
+                }
+                shakeVelocityX = Math.max(-28, Math.min(28, shakeVelocityX));
+                shakeVelocityY = Math.max(-28, Math.min(28, shakeVelocityY));
+            }
+        }
+
         document.addEventListener('pointerdown', () => {
+            initSensors();
             if (!bgm.muted && bgm.paused) {
                 tryPlayMusic();
             }
@@ -934,17 +1084,31 @@
             document.documentElement.style.setProperty('--shine-y', `${shineY.toFixed(1)}%`);
         }
 
-        // Render Loop: Smooth Lerp Tilt + Autonomous Floating + 3D Transform
+        // Render Loop: Smooth Lerp Tilt + Autonomous Floating + Shake Spring + 3D Transform
         function renderLoop(time) {
             const lerpFactor = 0.08;
 
+            // Hover damping: smoothly dampen autonomous floating breathing motion when hovering to make clicking rock-solid
+            const targetDamping = isHovering ? 0.18 : 1.0;
+            hoverDamping += (targetDamping - hoverDamping) * 0.1;
+
             // Autonomous floating breathing motion
             const t = time * 0.0015;
-            const autoFloatY = Math.sin(t) * 10;
-            const autoTiltX = Math.cos(t * 0.8) * 2.5;
-            const autoTiltY = Math.sin(t * 0.7) * 3.5;
+            const autoFloatY = Math.sin(t) * 10 * hoverDamping;
+            const autoTiltX = Math.cos(t * 0.8) * 2.5 * hoverDamping;
+            const autoTiltY = Math.sin(t * 0.7) * 3.5 * hoverDamping;
 
-            // Lerp mouse tilt towards target
+            // Shake physics: Damped Harmonic Oscillator (Micro-spring response)
+            const springK = 0.14;
+            const springDamping = 0.84;
+            shakeVelocityX += -shakeOffsetX * springK;
+            shakeVelocityY += -shakeOffsetY * springK;
+            shakeVelocityX *= springDamping;
+            shakeVelocityY *= springDamping;
+            shakeOffsetX += shakeVelocityX;
+            shakeOffsetY += shakeVelocityY;
+
+            // Lerp mouse/gyro tilt towards target
             currentTiltX += (targetTiltX - currentTiltX) * lerpFactor;
             currentTiltY += (targetTiltY - currentTiltY) * lerpFactor;
             currentFloatY += (autoFloatY - currentFloatY) * lerpFactor;
@@ -952,13 +1116,13 @@
             shineX += (targetShineX - shineX) * 0.1;
             shineY += (targetShineY - shineY) * 0.1;
 
-            const finalTiltX = currentTiltX + autoTiltX;
-            const finalTiltY = (isDragging ? 0 : currentTiltY) + autoTiltY;
+            const finalTiltX = currentTiltX + autoTiltX + shakeOffsetY;
+            const finalTiltY = (isDragging ? 0 : currentTiltY) + autoTiltY + shakeOffsetX;
 
             // 1. cardWrapper receives vertical floating translation and slight X tilt
             cardWrapper.style.transform = `translateY(${currentFloatY}px) rotateX(${finalTiltX}deg)`;
 
-            // 2. cardContainer receives Flip rotation (from drag) plus mouse-induced Yaw (TiltY)
+            // 2. cardContainer receives Flip rotation (from drag) plus mouse/gyro-induced Yaw (TiltY)
             const totalRotationY = visualFlipY + finalTiltY;
             card.style.transform = `rotateY(${totalRotationY}deg)`;
 
@@ -993,11 +1157,13 @@
 
         window.addEventListener('pointerleave', () => {
             isHovering = false;
-            targetTiltX = 0;
-            targetTiltY = 0;
-            targetShineX = 50;
-            targetShineY = 50;
-            document.documentElement.style.setProperty('--shine-opacity', '0.6');
+            if (!isGyroActive) {
+                targetTiltX = 0;
+                targetTiltY = 0;
+                targetShineX = 50;
+                targetShineY = 50;
+                document.documentElement.style.setProperty('--shine-opacity', '0.6');
+            }
         });
 
         // 3D Drag-To-Flip Physics
