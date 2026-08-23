@@ -35,6 +35,16 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
         }
 
         body {
@@ -389,6 +399,7 @@
 
         .tagline {
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+            white-space: nowrap;
         }
 
         .contact-item {
@@ -445,50 +456,41 @@
             background: rgba(255, 255, 255, 0.82);
         }
 
-        /* 喷砂金属嵌盘 QR Code Dock */
-        .qr-container {
+        /* 喷砂金属嵌盘 互动双模视窗 (Interactive Media Dock) */
+        .media-widget {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 11px;
+            perspective: 800px;
+            position: relative;
+            z-index: 30;
         }
 
-        .qr-box {
+        .media-flip-container {
             width: 130px;
             height: 130px;
-            border: 1px solid rgba(158, 173, 190, 0.6);
-            border-radius: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
-            background: linear-gradient(145deg, #e1e9f2 0%, #ffffff 100%);
-            box-shadow: 
-                inset 0 2px 4px rgba(15, 23, 42, 0.1),
-                inset 0 -1px 2px rgba(255, 255, 255, 1),
-                0 6px 18px rgba(15, 23, 42, 0.07);
-            transition: all 0.3s ease;
-            overflow: hidden;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.34, 1.45, 0.64, 1);
+            cursor: inherit;
+            border-radius: 16px;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .qr-image {
-            width: 112px;
-            height: 112px;
-            object-fit: contain;
-            border-radius: 8px;
-            background: #ffffff;
-            padding: 4px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-            position: relative;
-            z-index: 2;
+        .media-flip-container.show-qr {
+            transform: rotateY(180deg);
         }
-        
-        .qr-box::before,
-        .qr-box::after {
+
+        /* 保留原有流光线条 (Preserving and enhancing animated border-spin flow line!) */
+        .media-flip-container::before,
+        .media-flip-container::after {
             content: '';
             position: absolute;
             inset: -1px;
-            border-radius: 16px;
+            border-radius: 17px;
             padding: 1.5px;
             background: conic-gradient(
                 from var(--border-angle),
@@ -507,10 +509,10 @@
             mask-composite: exclude;
             animation: border-spin 4s linear infinite;
             pointer-events: none;
-            z-index: 1;
+            z-index: 10;
         }
 
-        .qr-box::after {
+        .media-flip-container::after {
             filter: blur(5px);
             opacity: 0.5;
             padding: 2px;
@@ -520,28 +522,167 @@
             100% { --border-angle: 360deg; }
         }
 
-        .qr-text-container {
+        .media-card-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 15px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border: 1px solid rgba(158, 173, 190, 0.6);
+            background: linear-gradient(145deg, #e1e9f2 0%, #ffffff 100%);
+            box-shadow:
+                inset 0 2px 4px rgba(15, 23, 42, 0.1),
+                inset 0 -1px 2px rgba(255, 255, 255, 1),
+                0 6px 18px rgba(15, 23, 42, 0.07);
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            text-align: center;
-            color: var(--text-muted);
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+            transition: box-shadow 0.3s ease, opacity 0.35s ease;
+            pointer-events: none;
         }
 
-        .qr-text-main {
-            font-size: 0.75rem;
-            letter-spacing: 0.15em;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            color: #1a2533;
+        /* 肖像面 */
+        .media-face-avatar {
+            transform: rotateY(0deg);
+            background: #0b1320;
+            z-index: 2;
+            opacity: 1;
         }
 
-        .qr-text-sub {
-            font-size: 0.6rem;
-            letter-spacing: 0.1em;
-            color: #5c6c7f;
+        .media-flip-container.show-qr .media-face-avatar {
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .media-face-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+            transition: transform 0.4s ease;
+            pointer-events: none;
+        }
+
+        .media-flip-container:hover .media-face-avatar img {
+            transform: scale(1.05);
+        }
+
+        /* 肖像右下角在线呼吸光标 */
+        .avatar-live-badge {
+            position: absolute;
+            bottom: 7px;
+            right: 7px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(11, 19, 32, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-size: 8px;
+            color: #ffffff;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .avatar-pulse-dot {
+            width: 4.5px;
+            height: 4.5px;
+            border-radius: 50%;
+            background: #0284c7;
+            box-shadow: 0 0 6px #0284c7, 0 0 2px #38bdf8;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.7); }
+        }
+
+        /* 二维码面 */
+        .media-face-qr {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #e1e9f2 0%, #ffffff 100%);
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .media-flip-container.show-qr .media-face-qr {
+            pointer-events: auto;
+            opacity: 1;
+            z-index: 3;
+        }
+
+        .qr-image {
+            width: 112px;
+            height: 112px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 4px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 脱离 3D 卡片层的全局切换器，避免被拖拽与透视命中区挡住 */
+        .global-media-toggle {
+            position: fixed;
+            left: 50%;
+            bottom: max(22px, env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 10000;
+            min-width: 148px;
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.94);
+            background: rgba(238, 243, 248, 0.92);
+            backdrop-filter: blur(18px) saturate(1.25);
+            -webkit-backdrop-filter: blur(18px) saturate(1.25);
+            box-shadow:
+                0 12px 34px rgba(15, 23, 42, 0.18),
+                0 0 0 1px rgba(2, 132, 199, 0.16),
+                inset 0 1px 1px rgba(255, 255, 255, 0.96);
+            color: #334155;
+            font: 550 0.76rem/1 'Inter', sans-serif;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .global-media-toggle:hover {
+            color: var(--accent);
+            box-shadow:
+                0 14px 38px rgba(15, 23, 42, 0.2),
+                0 0 0 2px rgba(2, 132, 199, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.96);
+        }
+
+        .global-media-toggle:active {
+            transform: translateX(-50%) scale(0.96);
+        }
+
+        .global-media-toggle[aria-pressed="true"] {
+            color: #0369a1;
+            background: rgba(224, 242, 254, 0.94);
+        }
+
+        .global-media-toggle:focus-visible {
+            outline: 3px solid rgba(2, 132, 199, 0.42);
+            outline-offset: 4px;
         }
 
         /* 响应式缩放 */
@@ -636,26 +777,18 @@
                 margin-right: 0.95rem !important;
             }
 
-            .qr-box {
-                width: 118px;
-                height: 118px;
+            .media-flip-container {
+                width: 114px;
+                height: 114px;
             }
 
             .qr-image {
-                width: 102px;
-                height: 102px;
+                width: 98px;
+                height: 98px;
             }
 
-            .qr-container {
-                gap: 9px;
-            }
-
-            .qr-text-main {
-                font-size: 0.68rem;
-            }
-
-            .qr-text-sub {
-                font-size: 0.54rem;
+            .media-widget {
+                gap: 8px;
             }
 
             .meteor {
@@ -669,6 +802,34 @@
             .meteor:nth-child(3) { animation-delay: 7.2s !important; }
             .meteor:nth-child(4) { animation-delay: 10.5s !important; }
             .meteor:nth-child(5) { animation-delay: 13.8s !important; }
+
+            .global-media-toggle {
+                left: auto;
+                right: max(10px, env(safe-area-inset-right));
+                top: 50%;
+                bottom: auto;
+                transform: translateY(-50%) rotate(90deg);
+            }
+
+            .global-media-toggle:active {
+                transform: translateY(-50%) rotate(90deg) scale(0.96);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .meteor,
+            .avatar-pulse-dot,
+            .media-flip-container::before,
+            .media-flip-container::after,
+            .gyro-prompt-btn,
+            .gyro-prompt-btn svg {
+                animation: none !important;
+            }
+
+            .media-flip-container,
+            .media-card-face {
+                transition-duration: 0.01ms !important;
+            }
         }
 
         /* iOS 陀螺仪开启引导按钮 */
@@ -814,15 +975,22 @@
                             <div class="w-[1px] h-full bg-white/95"></div>
                         </div>
 
-                        <!-- Right: QR Code -->
+                        <!-- Right: Interactive Media Dock (Front: WhatsApp & Avatar) -->
                         <div class="flex flex-col items-center justify-center pe-4">
-                            <div class="qr-container">
-                                <div class="qr-box">
-                                    <img class="qr-image" src="WhatsApp code.jpg" alt="WhatsApp QR code">
-                                </div>
-                                <div class="qr-text-container">
-                                    <span class="qr-text-main">WhatsApp</span>
-                                    <span class="qr-text-sub">Scan to Connect</span>
+                            <div class="media-widget">
+                                <div class="media-flip-container" id="media-front">
+                                    <!-- Front Face: Avatar -->
+                                    <div class="media-card-face media-face-avatar">
+                                        <img src="头像.png" alt="Jed Liu Portrait">
+                                        <div class="avatar-live-badge">
+                                            <span class="avatar-pulse-dot"></span>
+                                            <span>ONLINE</span>
+                                        </div>
+                                    </div>
+                                    <!-- Back Face: QR Code -->
+                                    <div class="media-card-face media-face-qr">
+                                        <img class="qr-image" src="WhatsApp code.jpg" alt="WhatsApp QR code">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -880,15 +1048,22 @@
                             <div class="w-[1px] h-full bg-white/95"></div>
                         </div>
 
-                        <!-- Right: QR Code -->
+                        <!-- Right: Interactive Media Dock (Back: WeChat & Avatar) -->
                         <div class="flex flex-col items-center justify-center pe-4">
-                            <div class="qr-container">
-                                <div class="qr-box">
-                                    <img class="qr-image" src="Wechat code.png" alt="WeChat QR code">
-                                </div>
-                                <div class="qr-text-container">
-                                    <span class="qr-text-main">微信</span>
-                                    <span class="qr-text-sub">扫码添加</span>
+                            <div class="media-widget">
+                                <div class="media-flip-container" id="media-back">
+                                    <!-- Front Face: Avatar -->
+                                    <div class="media-card-face media-face-avatar">
+                                        <img src="头像.png" alt="Jed Liu 肖像">
+                                        <div class="avatar-live-badge">
+                                            <span class="avatar-pulse-dot"></span>
+                                            <span>ONLINE</span>
+                                        </div>
+                                    </div>
+                                    <!-- Back Face: QR Code -->
+                                    <div class="media-card-face media-face-qr">
+                                        <img class="qr-image" src="Wechat code.png" alt="WeChat QR code">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -899,6 +1074,10 @@
         </div> <!-- 关闭 card-wrapper -->
     </div>
 
+    <button class="global-media-toggle" id="global-media-toggle" type="button" aria-pressed="false" aria-label="将头像切换为二维码">
+        <span id="global-media-toggle-label">显示二维码</span>
+    </button>
+
     <script>
         const card = document.getElementById('card');
         const cardWrapper = document.getElementById('card-wrapper');
@@ -908,6 +1087,8 @@
         const hintText = document.getElementById('hint-text');
         const bgm = document.getElementById('bgm');
         const musicToggle = document.getElementById('music-toggle');
+        const globalMediaToggle = document.getElementById('global-media-toggle');
+        const globalMediaToggleLabel = document.getElementById('global-media-toggle-label');
 
         // Physics State Variables
         let isDragging = false;
@@ -915,6 +1096,7 @@
         let startY = 0;
         let currentFlipY = 0; // The base persistent rotation Y (0, 180, 360...)
         let visualFlipY = 0;  // Real-time rotation Y from dragging/inertia
+        let dragStartRotation = 0;
         let lastX = 0;
         let lastY = 0;
         let dragAxis = 'x';
@@ -922,6 +1104,7 @@
         let velocityY = 0;
         let inertiaFrame = null;
         let isHovering = false;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
         // Mouse Parallax & Autonomous Floating Tilt State
         let targetTiltX = 0; // Pitch (deg)
@@ -970,8 +1153,31 @@
         }
 
         function isInteractiveLink(e) {
-            return Boolean(e.target.closest('a, button, .contact-item, .music-toggle, .qr-box'));
+            return Boolean(e.target.closest('a, button, .contact-item, .music-toggle'));
         }
+
+        // Global media control lives outside the transformed card so it cannot lose pointer hits.
+        function setMediaFace(side, showQr) {
+            const container = document.getElementById(`media-${side}`);
+            if (!container) return;
+            container.classList.toggle('show-qr', showQr);
+            container.dataset.mode = showQr ? 'qr' : 'avatar';
+        }
+
+        function setGlobalMediaFace(showQr) {
+            setMediaFace('front', showQr);
+            setMediaFace('back', showQr);
+            globalMediaToggle.setAttribute('aria-pressed', String(showQr));
+            globalMediaToggle.setAttribute('aria-label', showQr ? '将二维码切换为头像' : '将头像切换为二维码');
+            globalMediaToggleLabel.textContent = showQr ? '显示头像' : '显示二维码';
+        }
+
+        globalMediaToggle.addEventListener('click', () => {
+            const showQr = globalMediaToggle.getAttribute('aria-pressed') !== 'true';
+            setGlobalMediaFace(showQr);
+        });
+
+        setGlobalMediaFace(false);
 
         function hideHint() {
             if (hintText && hintText.style.opacity !== '0') {
@@ -1211,10 +1417,11 @@
             hoverDamping += (targetDamping - hoverDamping) * 0.1;
 
             // Autonomous floating breathing motion
-            const t = time * 0.0015;
-            const autoFloatY = Math.sin(t) * 10 * hoverDamping;
-            const autoTiltX = Math.cos(t * 0.8) * 2.5 * hoverDamping;
-            const autoTiltY = Math.sin(t * 0.7) * 3.5 * hoverDamping;
+            const t = time * 0.0012;
+            const motionScale = prefersReducedMotion.matches ? 0 : 1;
+            const autoFloatY = Math.sin(t) * 5 * hoverDamping * motionScale;
+            const autoTiltX = Math.cos(t * 0.72) * 1.15 * hoverDamping * motionScale;
+            const autoTiltY = Math.sin(t * 0.64) * 1.55 * hoverDamping * motionScale;
 
             // Shake physics: Damped Harmonic Oscillator (Micro-spring response)
             const springK = 0.14;
@@ -1292,51 +1499,54 @@
             }
         }
 
-        function snapToNearestFace(rotation) {
-            currentFlipY = Math.round(rotation / 180) * 180;
-            visualFlipY = currentFlipY;
-            card.classList.remove('dragging');
-        }
+        function chooseRestingFace(rotation, velocity) {
+            const projectionTime = 210;
+            const projectedRotation = rotation + velocity * projectionTime;
+            let target = Math.round(projectedRotation / 180) * 180;
+            const travel = rotation - dragStartRotation;
 
-        function commitTouchFlipIfNeeded(rotation) {
-            if (!window.matchMedia('(pointer: coarse)').matches) {
-                return false;
+            // A deliberate short swipe should still turn one face, even without a fast release.
+            if (Math.abs(travel) > 38 && Math.abs(velocity) < 0.18 && target === currentFlipY) {
+                target = currentFlipY + Math.sign(travel) * 180;
             }
 
-            const deltaRotation = rotation - currentFlipY;
-            const touchFlipThreshold = 32;
-            if (Math.abs(deltaRotation) < touchFlipThreshold) {
-                return false;
-            }
-
-            currentFlipY += deltaRotation > 0 ? 180 : -180;
-            visualFlipY = currentFlipY;
-            card.classList.remove('dragging');
-            return true;
+            return target;
         }
 
-        function startInertia(initialVelocity) {
-            const minVelocity = 0.12;
-            let velocity = initialVelocity;
+        function startInertia(targetRotation, initialVelocity) {
+            if (prefersReducedMotion.matches) {
+                currentFlipY = targetRotation;
+                visualFlipY = targetRotation;
+                card.classList.remove('dragging');
+                return;
+            }
+
+            let position = visualFlipY;
+            let velocity = initialVelocity * 1000; // convert deg/ms to deg/s
             let lastFrameTime = performance.now();
 
             card.classList.add('dragging');
 
             const animate = (now) => {
-                const deltaTime = Math.min(now - lastFrameTime, 32);
+                const deltaTime = Math.min(now - lastFrameTime, 32) / 1000;
                 lastFrameTime = now;
 
-                visualFlipY += velocity * deltaTime;
+                // Semi-implicit spring integration: a weighted card with momentum and soft damping.
+                const displacement = position - targetRotation;
+                const acceleration = -82 * displacement - 15.5 * velocity;
+                velocity += acceleration * deltaTime;
+                position += velocity * deltaTime;
+                visualFlipY = position;
 
-                velocity *= Math.pow(0.94, deltaTime / 16.67);
-
-                if (Math.abs(velocity) > minVelocity) {
+                if (Math.abs(targetRotation - position) > 0.08 || Math.abs(velocity) > 0.45) {
                     inertiaFrame = requestAnimationFrame(animate);
                     return;
                 }
 
                 inertiaFrame = null;
-                snapToNearestFace(visualFlipY);
+                currentFlipY = targetRotation;
+                visualFlipY = targetRotation;
+                card.classList.remove('dragging');
             };
 
             inertiaFrame = requestAnimationFrame(animate);
@@ -1354,6 +1564,8 @@
             startY = e.clientY;
             lastX = e.clientX;
             lastY = e.clientY;
+            dragStartRotation = visualFlipY;
+            currentFlipY = Math.round(visualFlipY / 180) * 180;
             dragAxis = isMobilePortraitLayout() ? 'y' : 'x';
             lastMoveTime = performance.now();
             velocityY = 0;
@@ -1376,9 +1588,10 @@
             const sensitivitySpan = activeSpan * (dragAxis === 'y' ? 0.34 : 0.42);
             const rotationSensitivity = 180 / Math.max(sensitivitySpan, 220);
             
-            visualFlipY = currentFlipY + (delta * rotationSensitivity);
+            visualFlipY = dragStartRotation + (delta * rotationSensitivity);
             const deltaTime = Math.max(now - lastMoveTime, 1);
-            velocityY = ((currentCoord - previousCoord) * rotationSensitivity) / deltaTime;
+            const instantaneousVelocity = ((currentCoord - previousCoord) * rotationSensitivity) / deltaTime;
+            velocityY = velocityY * 0.72 + instantaneousVelocity * 0.28;
             lastX = e.clientX;
             lastY = e.clientY;
             lastMoveTime = now;
@@ -1388,25 +1601,17 @@
             if (!isDragging) return;
             isDragging = false;
             appContainer.classList.remove('is-dragging');
-            card.classList.remove('dragging');
 
-            appContainer.releasePointerCapture?.(e.pointerId);
-
-            if (Math.abs(velocityY) > 0.35) {
-                startInertia(velocityY);
-                return;
+            if (appContainer.hasPointerCapture?.(e.pointerId)) {
+                appContainer.releasePointerCapture(e.pointerId);
             }
-
-            if (commitTouchFlipIfNeeded(visualFlipY)) {
-                return;
-            }
-
-            snapToNearestFace(visualFlipY);
+            const targetRotation = chooseRestingFace(visualFlipY, velocityY);
+            startInertia(targetRotation, velocityY);
         };
 
         appContainer.addEventListener('pointerup', endDrag);
         appContainer.addEventListener('pointercancel', endDrag);
-        appContainer.addEventListener('pointerleave', endDrag);
+        appContainer.addEventListener('lostpointercapture', endDrag);
 
     </script>
 </body>
