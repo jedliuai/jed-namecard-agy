@@ -413,7 +413,7 @@
             padding: 7px 14px;
             margin: -4px -14px;
             border-radius: 10px;
-            transition: color 0.22s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.22s ease, box-shadow 0.22s ease;
+            transition: color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
             cursor: pointer;
             text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
             text-decoration: none;
@@ -422,6 +422,7 @@
             pointer-events: auto;
             touch-action: manipulation;
             width: fit-content;
+            -webkit-tap-highlight-color: rgba(2, 132, 199, 0.14);
         }
 
         .contact-item svg {
@@ -442,7 +443,6 @@
                 0 4px 14px rgba(15, 23, 42, 0.06),
                 0 0 0 1px rgba(2, 132, 199, 0.18),
                 inset 0 1px 1.5px rgba(255, 255, 255, 1);
-            transform: translateX(4px) translateZ(4px);
         }
 
         .contact-item:hover svg {
@@ -452,8 +452,13 @@
         }
 
         .contact-item:active {
-            transform: translateX(2px) scale(0.97);
             background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+        }
+
+        .contact-item:focus-visible {
+            outline: 3px solid rgba(2, 132, 199, 0.38);
+            outline-offset: 3px;
         }
 
         /* 喷砂金属嵌盘 互动双模视窗 (Interactive Media Dock) */
@@ -1104,6 +1109,9 @@
         let velocityY = 0;
         let inertiaFrame = null;
         let isHovering = false;
+        let interactionLock = false;
+        let activeContactPress = null;
+        let suppressedContactClick = null;
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
         // Mouse Parallax & Autonomous Floating Tilt State
@@ -1155,6 +1163,93 @@
         function isInteractiveLink(e) {
             return Boolean(e.target.closest('a, button, .contact-item, .music-toggle'));
         }
+
+        function setInteractionLock(locked) {
+            interactionLock = locked;
+            if (locked) {
+                cancelInertia();
+                isHovering = true;
+                targetTiltX = currentTiltX;
+                targetTiltY = currentTiltY;
+            } else if (!isDragging && !inertiaFrame && Math.abs(visualFlipY - currentFlipY) > 0.08) {
+                const targetRotation = Math.round(visualFlipY / 180) * 180;
+                startInertia(targetRotation, 0);
+            }
+        }
+
+        function activateContactLink(link) {
+            const proxy = document.createElement('a');
+            proxy.href = link.href;
+            proxy.target = link.target || '_self';
+            proxy.rel = link.rel || 'noopener noreferrer';
+            proxy.style.display = 'none';
+            document.body.appendChild(proxy);
+            proxy.click();
+            proxy.remove();
+        }
+
+        document.querySelectorAll('a.contact-item').forEach((link) => {
+            link.addEventListener('pointerdown', (event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+                activeContactPress = {
+                    link,
+                    pointerId: event.pointerId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    moved: false
+                };
+                setInteractionLock(true);
+                link.focus({ preventScroll: true });
+                try {
+                    link.setPointerCapture?.(event.pointerId);
+                } catch (_) {}
+                event.preventDefault();
+                event.stopPropagation();
+            });
+
+            link.addEventListener('pointermove', (event) => {
+                if (!activeContactPress || activeContactPress.pointerId !== event.pointerId) return;
+                const distance = Math.hypot(
+                    event.clientX - activeContactPress.startX,
+                    event.clientY - activeContactPress.startY
+                );
+                activeContactPress.moved = distance > 12;
+            });
+
+            const finishContactPress = (event, shouldActivate) => {
+                if (!activeContactPress || activeContactPress.pointerId !== event.pointerId) return;
+                const pressedLink = activeContactPress.link;
+                const activate = shouldActivate && !activeContactPress.moved;
+                activeContactPress = null;
+
+                if (pressedLink.hasPointerCapture?.(event.pointerId)) {
+                    pressedLink.releasePointerCapture(event.pointerId);
+                }
+
+                if (activate) {
+                    suppressedContactClick = pressedLink;
+                    event.preventDefault();
+                    activateContactLink(pressedLink);
+                    setTimeout(() => {
+                        if (suppressedContactClick === pressedLink) suppressedContactClick = null;
+                    }, 500);
+                }
+
+                setTimeout(() => setInteractionLock(false), activate ? 90 : 0);
+                event.stopPropagation();
+            };
+
+            link.addEventListener('pointerup', (event) => finishContactPress(event, true));
+            link.addEventListener('pointercancel', (event) => finishContactPress(event, false));
+            link.addEventListener('click', (event) => {
+                if (suppressedContactClick === link) {
+                    suppressedContactClick = null;
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            });
+        });
 
         // Global media control lives outside the transformed card so it cannot lose pointer hits.
         function setMediaFace(side, showQr) {
@@ -1413,12 +1508,12 @@
             const lerpFactor = 0.08;
 
             // Hover damping: smoothly dampen autonomous floating breathing motion when hovering to make clicking rock-solid
-            const targetDamping = isHovering ? 0.18 : 1.0;
+            const targetDamping = interactionLock ? 0 : (isHovering ? 0.18 : 1.0);
             hoverDamping += (targetDamping - hoverDamping) * 0.1;
 
             // Autonomous floating breathing motion
             const t = time * 0.0012;
-            const motionScale = prefersReducedMotion.matches ? 0 : 1;
+            const motionScale = prefersReducedMotion.matches || interactionLock ? 0 : 1;
             const autoFloatY = Math.sin(t) * 5 * hoverDamping * motionScale;
             const autoTiltX = Math.cos(t * 0.72) * 1.15 * hoverDamping * motionScale;
             const autoTiltY = Math.sin(t * 0.64) * 1.55 * hoverDamping * motionScale;
@@ -1434,15 +1529,18 @@
             shakeOffsetY += shakeVelocityY;
 
             // Lerp mouse/gyro tilt towards target
-            currentTiltX += (targetTiltX - currentTiltX) * lerpFactor;
-            currentTiltY += (targetTiltY - currentTiltY) * lerpFactor;
-            currentFloatY += (autoFloatY - currentFloatY) * lerpFactor;
+            if (!interactionLock) {
+                currentTiltX += (targetTiltX - currentTiltX) * lerpFactor;
+                currentTiltY += (targetTiltY - currentTiltY) * lerpFactor;
+                currentFloatY += (autoFloatY - currentFloatY) * lerpFactor;
+            }
 
             shineX += (targetShineX - shineX) * 0.1;
             shineY += (targetShineY - shineY) * 0.1;
 
-            const finalTiltX = currentTiltX + autoTiltX + shakeOffsetY;
-            const finalTiltY = (isDragging ? 0 : currentTiltY) + autoTiltY + shakeOffsetX;
+            const shakeScale = interactionLock ? 0 : 1;
+            const finalTiltX = currentTiltX + autoTiltX + shakeOffsetY * shakeScale;
+            const finalTiltY = (isDragging ? 0 : currentTiltY) + autoTiltY + shakeOffsetX * shakeScale;
 
             // 1. cardWrapper receives vertical floating translation and slight X tilt
             cardWrapper.style.transform = `translateY(${currentFloatY}px) rotateX(${finalTiltX}deg)`;
@@ -1460,7 +1558,7 @@
 
         // Mouse Parallax & Dynamic Hover Tilt (Cloudflare / Apple Card style)
         window.addEventListener('pointermove', (e) => {
-            if (e.pointerType === 'mouse' && !isDragging) {
+            if (e.pointerType === 'mouse' && !isDragging && !interactionLock) {
                 isHovering = true;
                 const rect = appContainer.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
