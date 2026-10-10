@@ -1,9 +1,8 @@
-name: Deploy to Cloudflare Pages
+name: Manual Cloudflare Pages deployment
 
 on:
-  push:
-    branches:
-      - main
+  # Production pushes are deployed by Cloudflare's native Git integration.
+  # This optional fallback requires the repository's Cloudflare secrets.
   workflow_dispatch:
 
 jobs:
@@ -19,4 +18,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=super-namecard --commit-dirty=true
+          command: pages deploy . --project-name=jed-namecard-agy --commit-dirty=true
