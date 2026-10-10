@@ -1,0 +1,10 @@
+# Jed Liu — Contact card
+
+> Bilingual digital contact card for Jed Liu, working across AI automation and international trade.
+
+- [Contact card](https://card.jedliuai.com/): email, WhatsApp and WeChat contact channels.
+- [Personal website](https://jedliuai.com/): AI creation, Codex tutorials and music projects.
+- [Pharmaceutical professional profile](https://pharma.jedliuai.com/): pharmaceutical international business experience.
+- [Pharmaceutical business guides](https://pharma.jedliuai.com/guides/): practical project coordination notes.
+
+The shared person identity is https://jedliuai.com/#person. This card is a personal contact page, not a product catalogue or manufacturer website.
