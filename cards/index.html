@@ -7,7 +7,7 @@
 <title>Super Namecard · Showroom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;900&family=VT323&family=Archivo+Black&family=Bungee&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;900&family=VT323&family=Archivo+Black&family=Bungee&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Pinyon+Script&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@500;900&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/styles.css">
@@ -17,10 +17,11 @@
   .picker button[aria-pressed="true"]{background:var(--ui-fg);color:var(--page-bg)}
   .picker .me{margin-left:6px}
   html.clean .picker{display:none}
+  html.immersive .picker{display:none}
   html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
-  html:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
-  html.land:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
-  @media (min-width:700px){html:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}}
+  html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+  html.land:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
+  @media (min-width:700px){html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
@@ -28,12 +29,13 @@
 <div class="picker" id="picker" role="group" aria-label="Card style"></div>
 <main class="stage" id="stage"></main>
 <script type="module">
-import { STYLES } from "./js/templates.js";
+import { STYLES, ALIASES } from "./js/templates.js";
 import { PRESETS, JED } from "./js/presets.js";
 import { mountCard } from "./js/runtime.js";
 
 const q = new URLSearchParams(location.search);
-let style = STYLES.some((s) => s.id === q.get("style")) ? q.get("style") : "obsidian";
+const asked = ALIASES[q.get("style")] || q.get("style");
+let style = STYLES.some((s) => s.id === asked) ? asked : "noir";
 let me = q.get("me") === "1";
 if (q.has("clean")) document.documentElement.classList.add("clean");
 

@@ -6,7 +6,7 @@ body{background:var(--page-bg);color:var(--ui-fg);font-family:"Inter Tight","Not
 button{font:inherit;color:inherit}
 
 /* Stage: rotated by --stage-rot when the phone is sideways but the OS did not rotate (rotation lock). */
-.stage{position:fixed;left:50%;top:50%;width:100vw;height:100vh;height:100dvh;transform:translate(-50%,-50%) rotate(var(--stage-rot,0deg));container-type:size;display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) env(safe-area-inset-right,0px) calc(env(safe-area-inset-bottom,0px) + 14px) env(safe-area-inset-left,0px);transition:transform .7s cubic-bezier(.2,.9,.25,1.12)}
+.stage{position:fixed;left:50%;top:50%;width:100vw;height:100vh;height:100dvh;transform:translate(-50%,-50%) rotate(var(--stage-rot,0deg));container-type:size;display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) env(safe-area-inset-right,0px) calc(env(safe-area-inset-bottom,0px) + 14px) env(safe-area-inset-left,0px);transition:transform .8s cubic-bezier(.25,.9,.3,1)}
 .stage.virtual{width:100vh;height:100vw;width:100dvh}
 .scene{width:100%;height:100%;min-height:0;display:grid;place-items:center;perspective:1500px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
 .scene:active{cursor:grabbing}
@@ -15,49 +15,57 @@ button{font:inherit;color:inherit}
 .flipper{position:relative;transform:rotateY(var(--flip,0deg));transform-style:preserve-3d;width:min(86cqw,66cqh * .6308);aspect-ratio:54/85.6}
 .land .flipper{width:min(76cqw,86cqh * 1.5852);aspect-ratio:85.6/54}
 .land .stage{grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) auto;align-items:center}
+/* Measuring: take the 3D transforms out so boxes come back exact (the stage rotation is undone in JS). */
+.stage.measuring .enter,.stage.measuring .tilt,.stage.measuring .flipper,.stage.measuring .face,.stage.measuring .scene{transform:none!important}
 
-/* Faces. Each face is its own size container, so cqmin = the card's short edge. */
+/* Faces. .box is the size container for content (cqmin = the card's short edge); .lay holds the grid. */
 .face{position:absolute;inset:0;container-type:size;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:6% / 3.79%;--px:50%;--py:35%}
 .land .face{border-radius:3.79% / 6%}
 .face.back{transform:rotateY(180deg)}
 .face > .fx{position:absolute;inset:0;pointer-events:none}
+.face > .box{position:absolute;inset:0;container-type:size}
+.box > .lay{position:absolute;inset:0}
 .face [data-m]{position:relative}
 .face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:30;background:radial-gradient(circle at var(--px) var(--py),rgba(255,255,255,var(--sa,.28)),transparent 46%);mix-blend-mode:var(--sb,soft-light)}
 .face img{display:block}
-
-/* Shared back face */
-.face > .lay{position:absolute;inset:0}
-.face.back > .lay{display:grid;grid-template-columns:1fr;grid-template-rows:auto;justify-items:center;align-content:center;gap:3cqmin;padding:10cqmin 9cqmin;text-align:center;color:var(--b-fg,#fff);font-family:var(--b-font,inherit)}
-.b-qr{width:54cqmin;aspect-ratio:1;border-radius:3cqmin;overflow:hidden;background:var(--qr-bg,#fff);box-shadow:0 0 0 1px var(--b-line,rgba(255,255,255,.2))}
+.b-qr{aspect-ratio:1;overflow:hidden;background:var(--qr-bg,#fff)}
 .b-qr svg{display:block;width:100%;height:100%}
-.b-cap{font-size:3.6cqmin;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
-.b-name{font-size:7.4cqmin;font-weight:700;line-height:1.1;margin-top:7cqmin}
-.b-list{display:grid;gap:1.4cqmin;font-size:3.7cqmin;opacity:.85;font-family:"JetBrains Mono",ui-monospace,monospace;word-break:break-all}
-.land .face.back > .lay{grid-template-columns:auto 1fr;grid-template-rows:1fr auto auto 1fr;justify-items:start;text-align:left;column-gap:8cqmin;row-gap:3cqmin;padding:9cqmin 10cqmin}
-.land .b-qr{grid-row:1 / span 4;align-self:center;width:66cqmin}
-.land .b-cap{grid-column:2;grid-row:3}
-.land .b-name{grid-column:2;grid-row:2;font-size:9cqmin;margin-top:0}
-.land .b-list{grid-column:2;grid-row:4;align-self:start}
 
 /* Action bar */
 .actions{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 12px 0;position:relative;z-index:5}
-.act{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .15s}
+.act{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .15s,opacity .3s}
 .act:active{transform:scale(.95)}
 .act svg{width:17px;height:17px;flex:none}
 .act.icon{padding:10px;width:42px;height:42px;justify-content:center}
 .act:focus-visible{outline:2px solid var(--ui-fg);outline-offset:3px}
+.act .i-off,.act.off .i-on{display:none}
+.act.off .i-off{display:inline}
+.act.off{opacity:.6}
+.act .i-out,.immersive .act .i-in{display:none}
+.immersive .act .i-out{display:inline}
 .land .actions{flex-direction:column;align-items:stretch;padding:0 16px 0 0}
 .land .act{padding:8px 14px;font-size:13px}
-.land .act.icon{width:38px;height:38px;padding:8px}
+.land .act.icon{width:38px;height:38px;padding:8px;align-self:center}
 
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);background:rgba(20,20,24,.92);color:#fff;font-size:13.5px;padding:9px 16px;border-radius:999px;pointer-events:none;opacity:0;transition:opacity .25s;z-index:50}
+/* Full screen (mostly for phones): no chrome, the card as large as the screen allows. */
+.immersive .stage,.immersive.land .stage{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr)}
+.immersive .flipper{width:min(92cqw,93cqh * .6308)}
+.immersive.land .flipper{width:min(92cqw,90cqh * 1.5852)}
+.immersive .actions,.immersive.land .actions{position:absolute;right:10px;bottom:10px;flex-direction:column;gap:8px;padding:0;opacity:.55}
+.immersive .act:not(.icon){display:none}
+.immersive .act.icon{width:36px;height:36px;padding:8px}
+.immersive .hint{display:none}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);background:rgba(20,20,24,.92);color:#fff;font-size:13.5px;padding:9px 16px;border-radius:999px;pointer-events:none;opacity:0;transition:opacity .25s;z-index:50;white-space:nowrap}
 .toast.show{opacity:1}
 .hint{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translateX(-50%);font-size:12.5px;letter-spacing:.04em;color:var(--ui-fg);opacity:.6;pointer-events:none;white-space:nowrap;z-index:6;transition:opacity .6s}
 .hint.gone{opacity:0}
 
 /* POW stickers spawned by the pop physics */
 .pow{position:absolute;z-index:40;pointer-events:none;font-family:Bungee,"ZCOOL KuaiLe",sans-serif;font-size:7cqmin;color:#fff;background:#ff3d7f;padding:1.4cqmin 2.6cqmin;border:.8cqmin solid #141414;box-shadow:1cqmin 1cqmin 0 #141414;clip-path:polygon(0 12%,12% 0,30% 9%,50% 0,68% 10%,88% 0,100% 15%,93% 50%,100% 85%,85% 100%,62% 90%,40% 100%,18% 90%,0 100%,7% 50%);white-space:nowrap}
+.grain-dot{position:absolute;z-index:25;pointer-events:none;width:1.6cqmin;height:1.6cqmin;border-radius:50%}
 
+@keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){
   .stage{transition:none}
 }
