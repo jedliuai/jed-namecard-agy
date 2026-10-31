@@ -32,6 +32,12 @@ button{font:inherit;color:inherit}
 /* Safari (WebKit) can paint blend-mode layers black while a card turns in 3D: drop them mid-turn. */
 .webkit .stage.turning .face::after,.webkit .stage.turning :is(.n-glint,.h-lines,.h-band,.a-curtain,.a-grain){visibility:hidden}
 .webkit .stage.turning .w-n{mix-blend-mode:normal}
+/* iOS Safari does not clip animated layers (Aurora's light) to the rounded corners, so the faces are
+   clipped explicitly. That also cuts off their outer shadow, redrawn just behind them (runtime.js). */
+.webkit .face:not(.c-pop){clip-path:inset(0 round 6% / 3.79%)}
+.webkit.land .face:not(.c-pop){clip-path:inset(0 round 3.79% / 6%)}
+.webkit .flipper::after{content:"";position:absolute;inset:0;border-radius:6% / 3.79%;box-shadow:var(--card-shadow,none);transform:translateZ(-1px);pointer-events:none}
+.webkit.land .flipper::after{border-radius:3.79% / 6%}
 .face > .fx{position:absolute;inset:0;pointer-events:none}
 .face > .box{position:absolute;inset:0;container-type:size}
 .box > .lay{position:absolute;inset:0}

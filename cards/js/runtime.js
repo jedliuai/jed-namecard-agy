@@ -73,6 +73,12 @@ export function mountCard(stage, { style, data }) {
   const actions = stage.querySelector(".actions");
   const visibleFace = () => (Math.cos((S.flip * Math.PI) / 180) >= 0 ? front : back);
   const live = mountLive(style, [front, back]);
+  // Safari: the faces are clipped to their rounded corners (base.css), which also clips their outer
+  // shadow, so it is drawn on a layer behind them instead.
+  if (root.classList.contains("webkit") && style !== "pop") {
+    const outer = getComputedStyle(front).boxShadow.split(/,(?![^(]*\))/).filter((s) => !/inset/.test(s)).join(",");
+    flipper.style.setProperty("--card-shadow", outer || "none");
+  }
 
   /* ---------- measuring ---------- */
   // Exact (sub-pixel) layout boxes relative to `face`, ignoring the 3D tilt/flip transforms.
