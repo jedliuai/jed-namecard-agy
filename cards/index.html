@@ -18,6 +18,8 @@
   .picker .me{margin-left:6px}
   html.clean .picker{display:none}
   html.immersive .picker{display:none}
+  /* ?render: the video/image exporter drives the card; no UI at all. */
+  html.render .actions,html.render .hint,html.render .toast{display:none!important}
   html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
   html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
   html.land:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
@@ -39,6 +41,8 @@ const asked = ALIASES[q.get("style")] || q.get("style");
 let style = STYLES.some((s) => s.id === asked) ? asked : "noir";
 let me = q.get("me") === "1";
 if (q.has("clean")) document.documentElement.classList.add("clean");
+const render = q.has("render");
+if (render) document.documentElement.classList.add("clean", "immersive", "render");
 
 const stage = document.getElementById("stage");
 const picker = document.getElementById("picker");
@@ -50,6 +54,7 @@ function mount() {
   root.className = root.className.replace(/\bst-\S+/g, "").trim();
   root.classList.add("st-" + style);
   card = mountCard(stage, { style, data: me ? JED : PRESETS[style] });
+  if (render) window.__card = card;
   picker.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === style));
   picker.querySelector(".me").setAttribute("aria-pressed", me);
   const u = new URL(location.href);

@@ -389,16 +389,18 @@ export function mountCard(stage, { style, data }) {
     if (T.src === "idle") { T.tx = reduce ? 0.2 : Math.sin(k * 0.55) * 0.5; T.ty = reduce ? -0.25 : Math.cos(k * 0.42) * 0.35; }
     T.x += (T.tx - T.x) * 0.09;
     T.y += (T.ty - T.y) * 0.09;
-    // Flip physics: free spin with friction, then a spring onto the nearest face.
-    if (!S.dragging) {
+    // Flip physics: free spin with friction, then a spring onto the nearest face. Integrated in
+    // steps of at most 8 ms: one 33 ms step (a 30 fps phone) made the spring overshoot and spin.
+    for (let left = S.dragging ? 0 : dt; left > 0; left -= 8) {
+      const h = Math.min(8, left);
       if (S.flipTarget == null && Math.abs(S.flipV) > 0.06) {
-        S.flip += S.flipV * dt;
-        S.flipV *= Math.pow(0.965, dt / 16);
+        S.flip += S.flipV * h;
+        S.flipV *= Math.pow(0.965, h / 16);
       } else {
         if (S.flipTarget == null) S.flipTarget = Math.round(S.flip / 180) * 180;
         const a = (S.flipTarget - S.flip) * 0.0009 - S.flipV * 0.045;
-        S.flipV += a * dt;
-        S.flip += S.flipV * dt;
+        S.flipV += a * h;
+        S.flip += S.flipV * h;
         if (Math.abs(S.flipTarget - S.flip) < 0.05 && Math.abs(S.flipV) < 0.002) { S.flip = S.flipTarget; S.flipV = 0; }
       }
     }

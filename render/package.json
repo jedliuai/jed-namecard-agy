@@ -1,0 +1,9 @@
+{
+  "name": "namecard-render",
+  "private": true,
+  "type": "module",
+  "description": "Renders a Super Namecard into a share pack (MP4, GIF, JPG)",
+  "dependencies": {
+    "playwright-core": "1.45.3"
+  }
+}
