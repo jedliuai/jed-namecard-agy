@@ -50,14 +50,32 @@ export function setMuted(v) {
 // the few most recent tracks stay decoded (phones run out of memory otherwise).
 const bytes = new Map();
 const DECODED_MAX = 2;
-const url = (style) => new URL(`../audio/${style}.mp3`, import.meta.url);
-function fetchBytes(style) {
-  if (!bytes.has(style)) {
-    const p = fetch(url(style)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))));
-    p.catch(() => bytes.delete(style));
-    bytes.set(style, p);
+// Opus (webm) is the smallest for the same quality; Safari gets AAC (m4a), which it always decodes.
+// If one format fails to load or decode, the other is tried.
+let formats = null;
+function order() {
+  if (!formats) {
+    const ios = document.documentElement.classList.contains("webkit");
+    const opus = !ios && document.createElement("audio").canPlayType('audio/webm; codecs="opus"');
+    formats = opus ? ["webm", "m4a"] : ["m4a", "webm"];
   }
-  return bytes.get(style);
+  return formats;
+}
+function fetchBytes(style, ext = order()[0]) {
+  const key = style + "." + ext;
+  if (!bytes.has(key)) {
+    const p = fetch(new URL(`../audio/${key}`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))));
+    p.catch(() => bytes.delete(key));
+    bytes.set(key, p);
+  }
+  return bytes.get(key);
+}
+const decode = (b) => new Promise((res, rej) => ac.decodeAudioData(b.slice(0), res, rej));
+async function fetchDecode(style) {
+  for (const ext of order()) {
+    try { return seamless(await decode(await fetchBytes(style, ext))); } catch {}
+  }
+  throw new Error("no playable track for " + style);
 }
 function load(style) {
   if (cache.has(style)) {
@@ -66,10 +84,7 @@ function load(style) {
     cache.set(style, hit);
     return hit;
   }
-  const p = fetchBytes(style)
-    .then((b) => new Promise((res, rej) => ac.decodeAudioData(b.slice(0), res, rej)))
-    .then(seamless)
-    .catch(() => { cache.delete(style); return null; });
+  const p = fetchDecode(style).catch(() => { cache.delete(style); return null; });
   cache.set(style, p);
   for (const k of cache.keys()) {
     if (cache.size <= DECODED_MAX) break;
@@ -226,13 +241,15 @@ export const sfx = {
     if (!live()) return;
     hiss("bandpass", r(2500, 4200), 2000, 0.02, 0.16, delay, 4, 0.001);
   },
-  // A typewriter key: a sharp clack with some body, loud enough to read as typing.
-  key(delay = 0) {
+  // A computer keyboard key: a bright click on the way down and a short plastic thock; the
+  // space bar is deeper and a little longer.
+  key(delay = 0, space = false) {
     if (!live()) return;
-    const v = r(0.85, 1.15);
-    hiss("highpass", 2600, 2600, 0.018, 0.6 * v, delay, 0.7, 0.0008);
-    hiss("bandpass", r(1100, 1500), 900, 0.04, 0.55 * v, delay + 0.002, 2.5, 0.001);
-    osc("sine", r(150, 190), 90, 0.06, 0.45 * v, delay, 0.001);
+    const v = r(0.85, 1.1);
+    hiss("highpass", 4200, 4200, 0.006, 0.42 * v, delay, 0.7, 0.0005);
+    hiss("bandpass", space ? r(420, 520) : r(900, 1300), space ? 380 : 700, space ? 0.05 : 0.028, 0.55 * v, delay + 0.003, 3, 0.001);
+    osc("sine", space ? 160 : r(230, 280), space ? 90 : 140, space ? 0.045 : 0.025, 0.28 * v, delay + 0.002, 0.001);
+    hiss("highpass", 3000, 3000, 0.008, 0.16 * v, delay + (space ? 0.075 : 0.06), 0.7, 0.0005);
   },
   stamp() {
     if (!live()) return;

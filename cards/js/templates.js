@@ -94,9 +94,6 @@ const MOL = `<svg viewBox="0 0 120 120" fill="none" stroke="#0b2545" stroke-widt
   <text x="44" y="92" font-size="7" fill="#0b2545" stroke="none" font-family="Inter Tight, sans-serif">NH₂</text>
   <circle cx="19" cy="28" r="2.2" fill="#12b5a5" stroke="none"/></svg>`;
 
-// Swiss back: two sets of fine rings; one turns slowly off-centre, so a moiré drifts across the disc.
-const MOIRE = `<svg class="w-moire" viewBox="-50 -50 100 100" fill="none" aria-hidden="true"><circle r="2.4"/><circle r="4.8"/><circle r="7.2"/><circle r="9.6"/><circle r="12"/><circle r="14.4"/><circle r="16.8"/><circle r="19.2"/><circle r="21.6"/><circle r="24"/><circle r="26.4"/><circle r="28.8"/><circle r="31.2"/><circle r="33.6"/><circle r="36"/><circle r="38.4"/><circle r="40.8"/><circle r="43.2"/><circle r="45.6"/><circle r="48"/><circle r="50.4"/><circle r="52.8"/><circle r="55.2"/><circle r="57.6"/><circle r="60"/><circle r="62.4"/><circle r="64.8"/><circle r="67.2"/><circle r="69.6"/><circle r="72"/></svg>`;
-
 const FRONT = {
   noir: (d) => `
     <div class="fx n-frame"></div><div class="fx n-wave">${WAVE}</div><div class="fx n-glint"></div>
@@ -166,7 +163,7 @@ const FRONT = {
     <div class="fx i-paper"></div><div class="fx i-sun"></div><div class="fx i-mtn"></div><div class="fx i-mist"></div>
     <div class="fx i-crane c1"><div class="cr-bob">${CRANE}</div></div><div class="fx i-crane c2"><div class="cr-bob">${CRANE}</div></div>
     <div class="fx i-mist m2"></div><div class="fx i-qi"><i></i><i></i><i></i><i></i><i></i></div><div class="fx i-ripple"></div>
-    <div class="i-name${isCJK(d.name) ? "" : " lat"}" data-m>${esc(d.name)}</div>
+    <div class="i-name${isCJK(d.name) ? "" : " lat"}" style="--n:${[...String(d.name || "")].length || 1}" data-m>${esc(d.name)}</div>
     <div class="i-title" data-m>${esc(d.title)}</div>
     ${sealHTML(d)}
     <div class="i-foot" data-m>${esc(d.company)}<br>WhatsApp ${esc(d.wa)}</div>`,
@@ -263,7 +260,7 @@ END:VCARD</pre>
 
   swiss: (d, q) => `
     <div class="fx w-gridlines on"></div>
-    <div class="w-disc" data-m>${MOIRE}${MOIRE.replace('class="w-moire"', 'class="w-moire turn"')}</div>
+    <div class="w-disc" data-m><i class="w-blob"></i></div>
     <span class="w-no" data-m>02 / Contact</span>
     <span class="w-ind" data-m>Scan → WhatsApp</span>
     <div class="b-qr w-qr" data-m>${q}</div>

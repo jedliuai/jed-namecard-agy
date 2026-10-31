@@ -10,6 +10,9 @@ const root = document.documentElement;
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isTouch = matchMedia("(pointer: coarse)").matches;
 const EASE = "cubic-bezier(.2,.8,.2,1)";
+// Safari's engine (every browser on iOS) gets a few rendering workarounds, see base.css.
+const ua = navigator.userAgent;
+root.classList.toggle("webkit", /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (/Safari/.test(ua) && !/Chrom|Android|Firefox|Edg/.test(ua)));
 
 export function qrSVG(text) {
   if (!window.qrcode || !text) return "";
@@ -138,7 +141,7 @@ export function mountCard(stage, { style, data }) {
         const dx = c0.x - c1.x, dy = c0.y - c1.y;
         if (dx || dy) scene.style.transform = `translate(${dx}px,${dy}px)`;
         const a1 = actions.getBoundingClientRect();
-        if (Math.abs(a1.left - a0.left) + Math.abs(a1.top - a0.top) > 2) play(actions, [{ opacity: 0, transform: land ? "translateX(12px)" : "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 260, easing: EASE, fill: "backwards" });
+        if (Math.abs(a1.left - a0.left) + Math.abs(a1.top - a0.top) > 40) play(actions, [{ opacity: 0, transform: land ? "translateX(12px)" : "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 260, easing: EASE, fill: "backwards" });
         return (ctx.m = { pairs: els.map((el, i) => ({ el, f: first[i], l: last[i] })), W0, H0, W1, H1, dx, dy });
       },
       // Pin the current layout without switching (entrance animations).
@@ -370,7 +373,7 @@ export function mountCard(stage, { style, data }) {
   sound.music(style);
 
   /* ---------- animation loop ---------- */
-  let lastT = performance.now(), lastFace = 0, backShown = false;
+  let lastT = performance.now(), lastFace = 0, backShown = false, wasTurning = false;
   back.classList.add("off");
   function tick(t) {
     if (!alive) return;
@@ -397,6 +400,8 @@ export function mountCard(stage, { style, data }) {
     // composited children, so the two faces showed through each other and flickered.
     const showBack = Math.cos(((S.flip + T.x * 14) * Math.PI) / 180) < 0;
     if (showBack !== backShown) { backShown = showBack; front.classList.toggle("off", showBack); back.classList.toggle("off", !showBack); }
+    const turning = S.dragging || Math.abs(S.flip - Math.round(S.flip / 180) * 180) > 2;
+    if (turning !== wasTurning) { wasTurning = turning; stage.classList.toggle("turning", turning); }
     const faceNow = Math.round(S.flip / 180);
     if (faceNow !== lastFace) { lastFace = faceNow; if (Math.abs(S.flipV) > 0.25) sound.sfx.tick(); }
     tiltEl.style.setProperty("--ry", (T.x * 14).toFixed(2) + "deg");

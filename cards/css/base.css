@@ -1,6 +1,8 @@
 /* Card stage: one full-screen card that tilts, flips and morphs between portrait and landscape. */
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+/* iOS enlarges text on rotation unless told not to; that pushed card text out of place. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html{--page-bg:#0b0b0e;--ui-fg:#fff;--ui-bg:rgba(255,255,255,.1);--ui-bd:rgba(255,255,255,.18)}
 body{background:var(--page-bg);color:var(--ui-fg);font-family:"Inter Tight","Noto Sans SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;transition:background-color .8s}
 button{font:inherit;color:inherit}
@@ -21,21 +23,28 @@ button{font:inherit;color:inherit}
 /* Faces. .box is the size container for content (cqmin = the card's short edge); .lay holds the grid. */
 .face{position:absolute;inset:0;container-type:size;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:6% / 3.79%;--px:50%;--py:35%}
 .land .face{border-radius:3.79% / 6%}
-.face.back{transform:rotateY(180deg)}
+/* The faces sit half a pixel apart so Safari never treats them as one plane while turning. */
+.face.front{transform:translateZ(.5px)}
+.face.back{transform:rotateY(180deg) translateZ(.5px)}
 /* The face turned away (set from JS): not painted, its loops paused. */
 .face.off{visibility:hidden}
 .face.off,.face.off *,.face.off ::before,.face.off ::after{animation-play-state:paused!important}
+/* Safari (WebKit) can paint blend-mode layers black while a card turns in 3D: drop them mid-turn. */
+.webkit .stage.turning .face::after,.webkit .stage.turning :is(.n-glint,.h-lines,.h-band,.a-curtain,.a-grain){visibility:hidden}
+.webkit .stage.turning .w-n{mix-blend-mode:normal}
 .face > .fx{position:absolute;inset:0;pointer-events:none}
 .face > .box{position:absolute;inset:0;container-type:size}
 .box > .lay{position:absolute;inset:0}
 .face [data-m]{position:relative}
 .face::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:30;background:radial-gradient(circle at var(--px) var(--py),rgba(255,255,255,var(--sa,.28)),transparent 46%);mix-blend-mode:var(--sb,soft-light)}
 .face img{display:block}
-.b-qr{aspect-ratio:1;overflow:hidden;background:var(--qr-bg,#fff)}
-.b-qr svg{display:block;width:100%;height:100%}
+/* The square SVG sets the height: aspect-ratio plus padding came out tall in Safari. */
+.b-qr{overflow:hidden;background:var(--qr-bg,#fff)}
+.b-qr svg{display:block;width:100%;height:auto}
 
 /* Action bar */
 .actions{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 12px 0;position:relative;z-index:5}
+.actions,.hint{-webkit-user-select:none;user-select:none}
 .act{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .15s,opacity .3s}
 .act:active{transform:scale(.95)}
 .act svg{width:17px;height:17px;flex:none}

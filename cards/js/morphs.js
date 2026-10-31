@@ -98,6 +98,8 @@ async function terminal(ctx) {
   sfx.crtOn();
   if (line) { line.getAnimations().forEach((a) => a.cancel()); await play(line, [{ opacity: 1, transform: "scaleX(0)" }, { opacity: 1, transform: "scaleX(1)" }, { opacity: 0, transform: "scaleX(1)" }], { duration: 260, easing: "ease-out" }); }
   const H1 = ctx.H();
+  // The name comes back empty and is typed in, rather than appearing and then being retyped.
+  retype(ctx.face);
   await Promise.all(m.pairs.map(({ el, l }, i) => {
     el.style.opacity = "";
     return play(el, [
@@ -107,15 +109,14 @@ async function terminal(ctx) {
     ], { duration: 360, easing: "cubic-bezier(.2,.9,.3,1)", delay: i * 40, fill: "backwards" });
   }));
   ctx.done(m);
-  retype(ctx.face);
 }
 // Type the name again, one key per character (the CSS steps the width; .3s delay, 1.1s long).
 function retype(face) {
   const t = face.querySelector(".t-type");
   if (!t) return;
   t.classList.remove("go"); void t.offsetWidth; t.classList.add("go");
-  const k = parseInt(getComputedStyle(t).getPropertyValue("--k")) || 6;
-  for (let i = 0; i < k; i++) sfx.key(0.3 + (1.1 / k) * i);
+  const chars = [...t.textContent], k = chars.length || 1;
+  chars.forEach((c, i) => sfx.key(0.3 + (1.1 / k) * i, c === " "));
 }
 
 /* ---------- 4 SWISS: the grid flashes, blocks snap into their new cells, the red disc rolls ---------- */
