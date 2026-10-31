@@ -107,12 +107,15 @@ async function terminal(ctx) {
     ], { duration: 360, easing: "cubic-bezier(.2,.9,.3,1)", delay: i * 40, fill: "backwards" });
   }));
   ctx.done(m);
-  const t = ctx.face.querySelector(".t-type");
-  if (t) {
-    t.classList.remove("go"); void t.offsetWidth; t.classList.add("go");
-    const k = parseInt(getComputedStyle(t).getPropertyValue("--k")) || 6;
-    for (let i = 0; i < k; i++) sfx.tick(0.3 + (1.1 / k) * i);
-  }
+  retype(ctx.face);
+}
+// Type the name again, one key per character (the CSS steps the width; .3s delay, 1.1s long).
+function retype(face) {
+  const t = face.querySelector(".t-type");
+  if (!t) return;
+  t.classList.remove("go"); void t.offsetWidth; t.classList.add("go");
+  const k = parseInt(getComputedStyle(t).getPropertyValue("--k")) || 6;
+  for (let i = 0; i < k; i++) sfx.key(0.3 + (1.1 / k) * i);
 }
 
 /* ---------- 4 SWISS: the grid flashes, blocks snap into their new cells, the red disc rolls ---------- */
@@ -429,7 +432,7 @@ export const MORPHS = {
   default: { morph: (ctx) => basic(ctx), enter: rise },
   noir: { morph: noir, enter: async (ctx) => { await rise(ctx); engrave(ctx.face); } },
   holo: { morph: holo, enter: rise },
-  terminal: { morph: terminal, enter: rise },
+  terminal: { morph: terminal, enter: async (ctx) => { retype(ctx.face); await rise(ctx); } },
   swiss: { morph: swiss, enter: rise },
   pop: { morph: pop, enter: popEnter },
   ink: { morph: ink, enter: rise },

@@ -32,6 +32,7 @@
 import { STYLES, ALIASES } from "./js/templates.js";
 import { PRESETS, JED } from "./js/presets.js";
 import { mountCard } from "./js/runtime.js";
+import { preload } from "./js/sound.js";
 
 const q = new URLSearchParams(location.search);
 const asked = ALIASES[q.get("style")] || q.get("style");
@@ -65,6 +66,8 @@ picker.addEventListener("click", (e) => {
   mount();
 });
 mount();
+// Showroom only: once the visitor starts playing, fetch the other styles' music in the background.
+addEventListener("pointerdown", () => preload(STYLES.map((s) => s.id)), { once: true });
 </script>
 </body>
 </html>

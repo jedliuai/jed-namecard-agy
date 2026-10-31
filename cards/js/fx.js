@@ -151,15 +151,16 @@ function helix(el) {
 export function mountLive(style, faces) {
   const items = [];
   for (const face of faces) {
-    face.querySelectorAll(".bp-3d").forEach((svg) => { svg._fx = tower(svg); items.push(svg._fx); });
-    face.querySelectorAll(".x-helix").forEach((el) => { el._fx = helix(el); items.push(el._fx); });
+    face.querySelectorAll(".bp-3d").forEach((svg) => { svg._fx = tower(svg); items.push({ fx: svg._fx, face }); });
+    face.querySelectorAll(".x-helix").forEach((el) => { el._fx = helix(el); items.push({ fx: el._fx, face }); });
   }
   let alive = items.length > 0, last = performance.now();
   function loop(now) {
     if (!alive) return;
     const dt = Math.min(64, now - last);
     last = now;
-    items.forEach((it) => it.step(now, dt));
+    // The face turned away is hidden: skip drawing it.
+    items.forEach((it) => { if (!it.face.classList.contains("off")) it.fx.step(now, dt); });
     requestAnimationFrame(loop);
   }
   if (alive) requestAnimationFrame(loop);

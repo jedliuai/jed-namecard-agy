@@ -46,15 +46,42 @@ export function setMuted(v) {
 }
 
 /* ---------- music ---------- */
-async function load(style) {
-  if (!cache.has(style)) {
-    cache.set(style, fetch(new URL(`../audio/${style}.mp3`, import.meta.url))
-      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
-      .then((b) => new Promise((res, rej) => ac.decodeAudioData(b, res, rej)))
-      .then(seamless)
-      .catch(() => null));
+// The small compressed files are kept for every style; decoded audio is ~15 MB per track, so only
+// the few most recent tracks stay decoded (phones run out of memory otherwise).
+const bytes = new Map();
+const DECODED_MAX = 2;
+const url = (style) => new URL(`../audio/${style}.mp3`, import.meta.url);
+function fetchBytes(style) {
+  if (!bytes.has(style)) {
+    const p = fetch(url(style)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))));
+    p.catch(() => bytes.delete(style));
+    bytes.set(style, p);
   }
-  return cache.get(style);
+  return bytes.get(style);
+}
+function load(style) {
+  if (cache.has(style)) {
+    const hit = cache.get(style);
+    cache.delete(style);
+    cache.set(style, hit);
+    return hit;
+  }
+  const p = fetchBytes(style)
+    .then((b) => new Promise((res, rej) => ac.decodeAudioData(b.slice(0), res, rej)))
+    .then(seamless)
+    .catch(() => { cache.delete(style); return null; });
+  cache.set(style, p);
+  for (const k of cache.keys()) {
+    if (cache.size <= DECODED_MAX) break;
+    if (k !== style && !(current && current.style === k)) cache.delete(k);
+  }
+  return p;
+}
+// Fetch the other tracks' files in the background (the showroom), so switching style is quick.
+export function preload(styles) {
+  if (muted) return;
+  const go = () => styles.reduce((p, s) => p.then(() => fetchBytes(s).catch(() => {})), Promise.resolve());
+  (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(go);
 }
 
 // Fold the last few seconds over the start so loop=true has no seam.
@@ -76,27 +103,31 @@ function seamless(buf) {
 async function startMusic(style) {
   const token = {};
   startMusic.token = token;
+  // Fade the old track straight away instead of waiting for the new one to load.
+  if (current && current.style !== style) stopMusic(0.6);
+  if (current && current.style === style) return;
   const buf = await load(style);
   if (startMusic.token !== token || !buf) return;
-  stopMusic(1.2);
-  const g = ac.createGain();
-  g.gain.setValueAtTime(0, ac.currentTime);
-  g.gain.linearRampToValueAtTime(1, ac.currentTime + 2.2);
+  stopMusic(0.6);
+  const t = ac.currentTime, g = ac.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(1, t + 0.7);
   g.connect(musicBus);
   const src = ac.createBufferSource();
   src.buffer = buf;
   src.loop = true;
   src.connect(g);
-  src.start();
+  src.start(t);
   current = { style, src, g };
 }
 function stopMusic(fade = 0.8) {
   if (!current) return;
-  const { src, g } = current;
-  g.gain.cancelScheduledValues(ac.currentTime);
-  g.gain.setValueAtTime(g.gain.value, ac.currentTime);
-  g.gain.linearRampToValueAtTime(0, ac.currentTime + fade);
-  try { src.stop(ac.currentTime + fade + 0.05); } catch {}
+  const { src, g } = current, t = ac.currentTime;
+  g.gain.cancelScheduledValues(t);
+  g.gain.setValueAtTime(g.gain.value, t);
+  g.gain.linearRampToValueAtTime(0, t + fade);
+  try { src.stop(t + fade + 0.05); } catch {}
+  src.onended = () => { src.disconnect(); g.disconnect(); };
   current = null;
 }
 export function music(style) {
@@ -194,6 +225,14 @@ export const sfx = {
   tick(delay = 0) {
     if (!live()) return;
     hiss("bandpass", r(2500, 4200), 2000, 0.02, 0.16, delay, 4, 0.001);
+  },
+  // A typewriter key: a sharp clack with some body, loud enough to read as typing.
+  key(delay = 0) {
+    if (!live()) return;
+    const v = r(0.85, 1.15);
+    hiss("highpass", 2600, 2600, 0.018, 0.6 * v, delay, 0.7, 0.0008);
+    hiss("bandpass", r(1100, 1500), 900, 0.04, 0.55 * v, delay + 0.002, 2.5, 0.001);
+    osc("sine", r(150, 190), 90, 0.06, 0.45 * v, delay, 0.001);
   },
   stamp() {
     if (!live()) return;

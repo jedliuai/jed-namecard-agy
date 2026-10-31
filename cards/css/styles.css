@@ -37,8 +37,7 @@
 /* back: magnetic stripe, signature panel */
 .n-guil{opacity:.13;display:grid;place-items:center}
 .n-guil svg{width:150cqmin;height:150cqmin;animation:spin 240s linear infinite}
-.c-noir.back .lay{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto auto auto auto;grid-template-areas:"top" "." "qr" "cap" "sig" "list" "fine";justify-items:start;padding:9cqmin 9cqmin 8cqmin 27cqmin}
-.n-stripe{position:absolute!important;left:6.5cqmin;top:0;bottom:0;width:14cqmin;display:block;background:linear-gradient(90deg,#030303,#1d1c1a 45%,#090909);box-shadow:inset 0 0 0 1px rgba(226,200,145,.1)}
+.c-noir.back .lay{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr auto auto auto auto auto;grid-template-areas:"top" "." "qr" "cap" "sig" "list" "fine";justify-items:start;padding:10cqmin 10cqmin 8cqmin}
 .n-top{grid-area:top;font-family:"Cormorant Garamond",serif;font-size:5.6cqmin;letter-spacing:.2em;color:#d8bd7e;white-space:nowrap}
 .n-top em{font-style:normal;font-size:3cqmin;letter-spacing:.5em;margin-left:2cqmin;opacity:.7}
 .n-qr{grid-area:qr;width:50cqmin;padding:2.6cqmin;border-radius:1.4cqmin;position:relative;box-shadow:0 0 0 .5cqmin #0b0b0b,0 0 0 .8cqmin rgba(226,200,145,.55),0 3cqmin 5cqmin -2cqmin rgba(0,0,0,.8)}
@@ -51,8 +50,7 @@
 .n-sig span{display:block;font-family:"Pinyon Script","Ma Shan Zheng",cursive;font-size:8cqmin;line-height:1.05;white-space:nowrap}
 .n-list{grid-area:list;display:grid;gap:.6cqmin;margin-top:4cqmin;font-family:"JetBrains Mono",monospace;font-size:3.1cqmin;color:rgba(232,209,155,.78);word-break:break-all}
 .n-fine{grid-area:fine;margin:3cqmin 0 0;font-size:2.3cqmin;line-height:1.45;color:rgba(232,209,155,.42);max-width:60cqmin}
-.land .c-noir.back .lay{grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto auto auto;grid-template-areas:"top qr" ". qr" "sig qr" "list qr" "fine cap";padding:27cqmin 10cqmin 7cqmin;column-gap:8cqmin}
-.land .n-stripe{left:0;right:0;top:7cqmin;bottom:auto;width:auto;height:13cqmin;background:linear-gradient(180deg,#030303,#1d1c1a 45%,#090909)}
+.land .c-noir.back .lay{grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto auto auto;grid-template-areas:"top qr" ". qr" "sig qr" "list qr" "fine cap";padding:10cqmin 10cqmin 8cqmin;column-gap:8cqmin}
 .land .n-qr{width:48cqmin;align-self:end}
 .land .n-cap{justify-self:center;align-self:start}
 .land .n-sig{margin-top:0}
@@ -153,16 +151,15 @@
 .land .w-c1{align-self:end}
 .land .w-rule{margin:3cqmin 0 0;align-self:start}
 /* back: red disc, QR on the grid, giant initials */
-.c-swiss.back .lay{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto auto auto auto;grid-template-areas:"no ind" "qr qr" ". ." "ini ini" "rule rule" "c1 c2" "c3 c4";padding:7.5cqmin;column-gap:3.8cqmin}
-.w-disc{position:absolute!important;width:104cqmin;height:104cqmin;border-radius:50%;background:#e3311d;top:-34cqmin;right:-46cqmin}
-.w-qr{grid-area:qr;width:50cqmin;margin-top:7cqmin;padding:1.6cqmin;box-shadow:0 0 0 .5cqmin #111}
-.c-swiss.back .w-side{top:34cqmin}
-.w-ini{grid-area:ini;font-family:"Archivo Black","Noto Sans SC",sans-serif;font-size:42cqmin;line-height:.8;letter-spacing:-.06em;mix-blend-mode:multiply;white-space:nowrap}
-.land .c-swiss.back .lay{grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr auto auto auto;grid-template-areas:"qr no ind" "qr ini ini" "qr rule rule" "qr c1 c2" "qr c3 c4";column-gap:6cqmin;padding:7.5cqmin 8cqmin}
+.c-swiss.back .lay{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr auto auto;grid-template-areas:"no ind" "qr qr" ". ." "rule rule" "c1 c2";padding:7.5cqmin;column-gap:3.8cqmin}
+.w-disc{position:absolute!important;width:104cqmin;height:104cqmin;border-radius:50%;background:#e3311d;top:-34cqmin;right:-46cqmin;overflow:hidden}
+.w-moire{position:absolute;inset:0;width:100%;height:100%;stroke:rgba(255,255,255,.2);stroke-width:.42}
+.w-moire.turn{inset:-4%;width:108%;height:108%;stroke:rgba(120,8,0,.22);transform:translateX(3%);animation:moire 70s linear infinite}
+@keyframes moire{from{transform:rotate(0) translateX(3%)}to{transform:rotate(360deg) translateX(3%)}}
+.w-qr{grid-area:qr;width:56cqmin;margin-top:9cqmin;padding:1.6cqmin;box-shadow:0 0 0 .5cqmin #111}
+.land .c-swiss.back .lay{grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr auto auto;grid-template-areas:"qr no ind" "qr . ." "qr rule rule" "qr c1 c2";column-gap:6cqmin;padding:7.5cqmin 8cqmin}
 .land .w-qr{width:62cqmin;margin:0;align-self:center}
 .land .w-disc{width:90cqmin;height:90cqmin;top:-48cqmin;right:-20cqmin}
-.land .w-ini{font-size:30cqmin;align-self:end}
-.land .c-swiss.back .w-side{top:auto;bottom:6cqmin;right:2.4cqmin}
 
 /* ============ 5 POP — comic sticker ============ */
 .st-pop{--page-bg:#ff6a48;--ui-fg:#141414;--ui-bg:#fff;--ui-bd:#141414}
@@ -346,24 +343,24 @@
 .land .bp-part{width:70cqmin;height:70cqmin;align-self:center}
 .land .bp-name{font-size:13cqmin}
 /* back: detail sheet */
-.c-blueprint.back .lay{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto auto 1fr auto;grid-template-areas:"det n" "lbl lbl" "notes notes" "plan plan" "tb tb";padding:15cqmin 11cqmin 11cqmin 15cqmin}
-.bb-plan{grid-area:plan;justify-self:center;align-self:center;width:44cqmin;display:grid!important;justify-items:center;gap:1cqmin;font-size:2.6cqmin;letter-spacing:.14em;opacity:.85}
+.c-blueprint.back .lay{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto 1fr auto;grid-template-areas:"det n" "lbl lbl" "notes plan" "tb tb";column-gap:4cqmin;padding:15cqmin 11cqmin 11cqmin 15cqmin}
+.bb-plan{grid-area:plan;justify-self:end;align-self:center;width:26cqmin;white-space:nowrap;display:grid!important;justify-items:center;gap:1cqmin;font-size:2.4cqmin;letter-spacing:.14em;opacity:.85}
 .bb-plan svg{width:100%;aspect-ratio:1;display:block;animation:spin 60s linear infinite}
 .bb-det{grid-area:det;width:52cqmin;position:relative}
 .bb-det .b-qr{padding:2cqmin;box-shadow:0 0 0 1px #e6f0ff}
 .bb-d{position:absolute;font-size:2.8cqmin;line-height:1;color:#e6f0ff;border:0 solid #e6f0ff;display:grid;place-items:center}
 .bb-dw{left:0;right:0;top:-6cqmin;height:4cqmin;border-width:0 1px 1px;align-items:start}
-.bb-dh{top:0;bottom:0;left:-6cqmin;width:4cqmin;border-width:1px 1px 1px 0;writing-mode:vertical-rl;transform:rotate(180deg);border-width:1px 0 1px 1px;justify-items:start}
+.bb-dh{top:0;bottom:0;left:-6cqmin;width:4cqmin;border-width:1px 1px 1px 0;writing-mode:vertical-rl;transform:rotate(180deg);border-width:1px 0 1px 1px;place-items:center}
 .bb-call{position:absolute;right:-6cqmin;bottom:-6cqmin;width:7cqmin;height:7cqmin;border:1px solid #e6f0ff;border-radius:50%;display:grid;place-items:center;font-size:3.4cqmin;background:#16457a}
 .bb-call::before{content:"";position:absolute;width:4cqmin;height:1px;background:#e6f0ff;left:-3.2cqmin;top:-.6cqmin;transform:rotate(45deg);transform-origin:100% 0}
 .bb-lbl{grid-area:lbl;font-size:3cqmin;letter-spacing:.1em;margin-top:8cqmin;border-bottom:1px solid rgba(219,233,255,.6);padding-bottom:1.2cqmin;white-space:nowrap}
-.bb-notes{grid-area:notes;margin:3cqmin 0 0;padding-left:5cqmin;font-size:3.1cqmin;line-height:1.7;word-break:break-all}
-.bb-n{grid-area:n;width:9cqmin;height:12.6cqmin;align-self:start}
+.bb-notes{grid-area:notes;align-self:center;margin:0;padding-left:5cqmin;font-size:2.8cqmin;line-height:1.75;word-break:break-all}
+.bb-n{grid-area:n;width:9cqmin;height:12.75cqmin;align-self:start;overflow:visible}
 .bb-tb{grid-area:tb}
-.land .c-blueprint.back .lay{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto;grid-template-areas:"det lbl n" "det notes plan" "det . plan" "det tb tb";column-gap:8cqmin;padding:14cqmin 11cqmin 10cqmin 16cqmin}
-.land .bb-det{width:60cqmin;align-self:center}
-.land .bb-lbl{margin-top:0}
-.land .bb-plan{width:26cqmin;align-self:start;margin-top:2cqmin}
+.land .c-blueprint.back .lay{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto;grid-template-areas:"det lbl n" "det notes plan" "det . plan" "det tb tb";column-gap:5cqmin;padding:13cqmin 9cqmin 10cqmin 14cqmin}
+.land .bb-det{width:50cqmin;align-self:center}
+.land .bb-lbl{margin-top:0;font-size:2.6cqmin}
+.land .bb-plan{width:22cqmin;align-self:start;margin-top:2cqmin;font-size:2.1cqmin}
 
 /* ============ 9 HELIX — clinical clean, DNA and capsule ============ */
 .st-helix{--page-bg:#dceff1;--ui-fg:#0b2545;--ui-bg:rgba(255,255,255,.75);--ui-bd:rgba(11,37,69,.15)}

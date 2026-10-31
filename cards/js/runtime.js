@@ -37,6 +37,7 @@ const I = {
 };
 
 export function mountCard(stage, { style, data }) {
+  let alive = true;
   const S = {
     style, data,
     land: false,          // current layout
@@ -76,10 +77,11 @@ export function mountCard(stage, { style, data }) {
   function stageAngle() {
     const m = getComputedStyle(stage).transform;
     if (!m || m === "none") return 0;
-    const v = m.match(/-?[\d.e]+/g).map(Number);
+    const v = m.match(/-?[\d.]+(?:e[-+]?\d+)?/g).map(Number);
     return Math.atan2(v[1], v[0]);
   }
   function measure(els, face) {
+    if (!alive) throw new Error("card destroyed");
     stage.classList.add("measuring");
     const th = -stageAngle(), c = Math.cos(th), s = Math.sin(th);
     const fr = face.getBoundingClientRect(), fs = getComputedStyle(face);
@@ -121,6 +123,7 @@ export function mountCard(stage, { style, data }) {
         const els = ctx.els();
         const { W: W0, H: H0 } = flipSize();
         const c0 = sceneCenter();
+        const a0 = actions.getBoundingClientRect();
         const first = measure(els, face);
         apply();
         root.classList.toggle("land", land);
@@ -134,8 +137,9 @@ export function mountCard(stage, { style, data }) {
         flipper.style.height = px(H0);
         const dx = c0.x - c1.x, dy = c0.y - c1.y;
         if (dx || dy) scene.style.transform = `translate(${dx}px,${dy}px)`;
-        play(actions, [{ opacity: 0, transform: land ? "translateX(12px)" : "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 260, easing: EASE, fill: "backwards" });
-        return { pairs: els.map((el, i) => ({ el, f: first[i], l: last[i] })), W0, H0, W1, H1, dx, dy };
+        const a1 = actions.getBoundingClientRect();
+        if (Math.abs(a1.left - a0.left) + Math.abs(a1.top - a0.top) > 2) play(actions, [{ opacity: 0, transform: land ? "translateX(12px)" : "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 420, delay: 260, easing: EASE, fill: "backwards" });
+        return (ctx.m = { pairs: els.map((el, i) => ({ el, f: first[i], l: last[i] })), W0, H0, W1, H1, dx, dy });
       },
       // Pin the current layout without switching (entrance animations).
       freeze() {
@@ -191,6 +195,7 @@ export function mountCard(stage, { style, data }) {
   }
 
   async function setLayout(target) {
+    if (!alive) return;
     if (S.busy) { S.queued = target; return; }
     if (target.land === S.land) {
       if (target.rot !== S.rot) applyRot(target.rot);
@@ -202,13 +207,22 @@ export function mountCard(stage, { style, data }) {
     const face = visibleFace();
     const ctx = makeCtx(face, target.land, () => applyRot(target.rot));
     const run = (MORPHS[S.style] && MORPHS[S.style].morph) || MORPHS.default.morph;
+    let dog = 0;
     try {
-      await (reduce ? MORPHS.default.morph(ctx) : run(ctx));
+      await Promise.race([
+        reduce ? MORPHS.default.morph(ctx) : run(ctx),
+        new Promise((_, rej) => { dog = setTimeout(() => rej(new Error("morph timed out")), 9000); }),
+      ]);
     } catch (e) {
+      if (!alive) return;
       console.error(e);
+      face.getAnimations({ subtree: true }).forEach((a) => a.cancel());
+      if (ctx.m) ctx.done(ctx.m);
       applyRot(target.rot);
       root.classList.toggle("land", target.land);
     }
+    clearTimeout(dog);
+    if (!alive) return;
     S.busy = false;
     delete stage.dataset.busy;
     lastBox = snapBox();
@@ -220,7 +234,11 @@ export function mountCard(stage, { style, data }) {
   /* ---------- orientation: real viewport, gyroscope (rotation lock), or the button ---------- */
   function want() {
     const viewLand = innerWidth > innerHeight;
-    if (viewLand !== S.viewLand) { S.viewLand = viewLand; S.manual = null; }
+    if (viewLand !== S.viewLand) {
+      S.viewLand = viewLand; S.manual = null;
+      // The OS rotates the page itself (rotation lock off): leave orientation to it from now on.
+      if (isTouch) { osRotates = true; S.gyroSide = 0; }
+    }
     if (S.manual !== null) {
       // On a phone held upright, a forced landscape turns the whole card so it fills the screen.
       const rot = S.manual && !viewLand && isTouch ? 90 : 0;
@@ -230,13 +248,13 @@ export function mountCard(stage, { style, data }) {
     return { land: viewLand, rot: 0 };
   }
   function evaluate() {
+    if (!alive) return;
     const t = want();
     if (S.busy) { S.queued = t; return; }
     if (t.land !== S.land || t.rot !== S.rot) setLayout(t);
   }
   const onResize = () => evaluate();
   addEventListener("resize", onResize);
-  let alive = true;
 
   /* ---------- size changes outside a morph (full screen, toolbars): scale the card smoothly ---------- */
   const snapBox = () => ({ w: flipper.offsetWidth, ...sceneCenter() });
@@ -253,27 +271,29 @@ export function mountCard(stage, { style, data }) {
   ro.observe(stage);
 
   /* ---------- gyroscope ---------- */
-  let gyroOn = false, sideTimer = 0, base = null;
+  // Gravity is low-pass filtered, a side needs a clear tilt (with hysteresis back to upright) and
+  // must hold for a moment before the card turns. Readings with the phone near flat are ignored.
+  let gyroOn = false, base = null, grav = null, cand = 0, candT = 0, osRotates = false;
+  const SIDE_HOLD = 600;
   function onOrient(e) {
     if (e.beta == null || e.gamma == null) return;
     const b = (e.beta * Math.PI) / 180, g = (e.gamma * Math.PI) / 180;
     // Gravity direction in the screen plane: (0,1) = held upright, (±1,0) = on its side.
-    const X = Math.cos(b) * Math.sin(g), Y = Math.sin(b), Z = Math.cos(b) * Math.cos(g);
-    const mag = Math.hypot(X, Y);
-    const theta = (Math.atan2(X, Y) * 180) / Math.PI;
-    if (mag > 0.45) {
-      let side = S.gyroSide;
-      if (Math.abs(theta) > 58 && Math.abs(theta) < 122) side = theta > 0 ? 90 : -90;
-      else if (Math.abs(theta) < 32) side = 0;
-      if (side !== S.gyroSide) {
-        clearTimeout(sideTimer);
-        const want = side;
-        // Wait a moment: if the OS is about to rotate the viewport itself, let it.
-        sideTimer = setTimeout(() => {
-          const g = innerWidth > innerHeight ? 0 : want;
-          if (g !== S.gyroSide) { S.gyroSide = g; S.manual = null; evaluate(); }
-        }, 380);
-      }
+    const X0 = Math.cos(b) * Math.sin(g), Y0 = Math.sin(b), Z0 = Math.cos(b) * Math.cos(g);
+    if (!grav) grav = { X: X0, Y: Y0, Z: Z0 };
+    grav.X += (X0 - grav.X) * 0.2; grav.Y += (Y0 - grav.Y) * 0.2; grav.Z += (Z0 - grav.Z) * 0.2;
+    const { X, Y, Z } = grav;
+    const mag = Math.hypot(X, Y), a = Math.abs((Math.atan2(X, Y) * 180) / Math.PI);
+    let side = cand;
+    if (mag > 0.62) {
+      if (a > 62 && a < 118 && Math.abs(X) > 0.58) side = X > 0 ? 90 : -90;
+      else if (a < 32) side = 0;
+    }
+    const now = performance.now();
+    if (side !== cand) { cand = side; candT = now; }
+    if (cand !== S.gyroSide && now - candT > SIDE_HOLD && !S.dragging) {
+      const g2 = innerWidth > innerHeight || osRotates ? 0 : cand;
+      if (g2 !== S.gyroSide) { S.gyroSide = g2; S.manual = null; evaluate(); }
     }
     // Light: deviation of the gravity vector from a slowly drifting baseline.
     const r = ((S.rot ? -S.rot : (screen.orientation ? screen.orientation.angle : 0)) * Math.PI) / 180;
@@ -281,8 +301,8 @@ export function mountCard(stage, { style, data }) {
     if (!base) base = { ux, z: Z };
     base.ux += (ux - base.ux) * 0.015;
     base.z += (Z - base.z) * 0.015;
-    S.tilt.tx = Math.max(-1, Math.min(1, (ux - base.ux) * 3.2));
-    S.tilt.ty = Math.max(-1, Math.min(1, (Z - base.z) * -3.2));
+    S.tilt.tx = Math.max(-1, Math.min(1, (ux - base.ux) * 2.6));
+    S.tilt.ty = Math.max(-1, Math.min(1, (Z - base.z) * -2.6));
     S.tilt.src = "gyro";
   }
   function startGyro() {
@@ -350,7 +370,8 @@ export function mountCard(stage, { style, data }) {
   sound.music(style);
 
   /* ---------- animation loop ---------- */
-  let lastT = performance.now(), lastFace = 0;
+  let lastT = performance.now(), lastFace = 0, backShown = false;
+  back.classList.add("off");
   function tick(t) {
     if (!alive) return;
     const dt = Math.min(48, t - lastT);
@@ -372,6 +393,10 @@ export function mountCard(stage, { style, data }) {
         if (Math.abs(S.flipTarget - S.flip) < 0.05 && Math.abs(S.flipV) < 0.002) { S.flip = S.flipTarget; S.flipV = 0; }
       }
     }
+    // Hide the face that points away. Safari does not always honour backface-visibility for
+    // composited children, so the two faces showed through each other and flickered.
+    const showBack = Math.cos(((S.flip + T.x * 14) * Math.PI) / 180) < 0;
+    if (showBack !== backShown) { backShown = showBack; front.classList.toggle("off", showBack); back.classList.toggle("off", !showBack); }
     const faceNow = Math.round(S.flip / 180);
     if (faceNow !== lastFace) { lastFace = faceNow; if (Math.abs(S.flipV) > 0.25) sound.sfx.tick(); }
     tiltEl.style.setProperty("--ry", (T.x * 14).toFixed(2) + "deg");
@@ -463,7 +488,7 @@ export function mountCard(stage, { style, data }) {
       removeEventListener("deviceorientation", onOrient); removeEventListener("resize", onResize);
       removeEventListener("pointerdown", onFirstTouch, true); removeEventListener("keydown", onFirstTouch, true);
       document.removeEventListener("fullscreenchange", onFs);
-      clearTimeout(sideTimer); toast.remove(); hint.remove();
+      toast.remove(); hint.remove(); delete stage.dataset.busy;
     },
     setLand: (v) => { S.manual = v; evaluate(); },
     state: S,

@@ -94,6 +94,9 @@ const MOL = `<svg viewBox="0 0 120 120" fill="none" stroke="#0b2545" stroke-widt
   <text x="44" y="92" font-size="7" fill="#0b2545" stroke="none" font-family="Inter Tight, sans-serif">NH₂</text>
   <circle cx="19" cy="28" r="2.2" fill="#12b5a5" stroke="none"/></svg>`;
 
+// Swiss back: two sets of fine rings; one turns slowly off-centre, so a moiré drifts across the disc.
+const MOIRE = `<svg class="w-moire" viewBox="-50 -50 100 100" fill="none" aria-hidden="true"><circle r="2.4"/><circle r="4.8"/><circle r="7.2"/><circle r="9.6"/><circle r="12"/><circle r="14.4"/><circle r="16.8"/><circle r="19.2"/><circle r="21.6"/><circle r="24"/><circle r="26.4"/><circle r="28.8"/><circle r="31.2"/><circle r="33.6"/><circle r="36"/><circle r="38.4"/><circle r="40.8"/><circle r="43.2"/><circle r="45.6"/><circle r="48"/><circle r="50.4"/><circle r="52.8"/><circle r="55.2"/><circle r="57.6"/><circle r="60"/><circle r="62.4"/><circle r="64.8"/><circle r="67.2"/><circle r="69.6"/><circle r="72"/></svg>`;
+
 const FRONT = {
   noir: (d) => `
     <div class="fx n-frame"></div><div class="fx n-wave">${WAVE}</div><div class="fx n-glint"></div>
@@ -225,7 +228,6 @@ const FRONT = {
 const BACK = {
   noir: (d, q) => `
     <div class="fx n-guil">${GUIL}</div><div class="fx n-frame"></div>
-    <i class="n-stripe" data-m></i>
     <span class="n-top" data-m>${esc(initials(d.name).split("").join(" "))} <em>NOIR</em></span>
     <div class="b-qr n-qr" data-m>${q}<i class="tl"></i><i class="br"></i></div>
     <div class="n-cap" data-m>Scan · WhatsApp</div>
@@ -261,17 +263,13 @@ END:VCARD</pre>
 
   swiss: (d, q) => `
     <div class="fx w-gridlines on"></div>
-    <div class="w-disc" data-m></div>
+    <div class="w-disc" data-m>${MOIRE}${MOIRE.replace('class="w-moire"', 'class="w-moire turn"')}</div>
     <span class="w-no" data-m>02 / Contact</span>
     <span class="w-ind" data-m>Scan → WhatsApp</span>
     <div class="b-qr w-qr" data-m>${q}</div>
-    <span class="w-side" data-m>${host(d)}</span>
-    <div class="w-ini" data-m>${esc(initials(d.name))}</div>
     <i class="w-rule" data-m></i>
     <div class="w-c w-c1" data-m><b>Phone</b>${esc(d.phone)}</div>
-    <div class="w-c w-c2" data-m><b>WhatsApp</b>${esc(d.wa)}</div>
-    <div class="w-c w-c3" data-m><b>Email</b>${esc(d.email)}</div>
-    <div class="w-c w-c4" data-m><b>Web</b>${host(d)}</div>`,
+    <div class="w-c w-c2" data-m><b>Email</b>${esc(d.email)}</div>`,
 
   pop: (d, q) => `
     <div class="fx p-half"></div><div class="fx p-burst"></div>
@@ -316,7 +314,7 @@ END:VCARD</pre>
       <li>WEB ${host(d)}</li>
     </ol>
     <div class="bb-plan" data-m>${PLAN}<span>PLAN · L1–L128</span></div>
-    <svg class="bb-n" data-m viewBox="0 0 20 28" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="10" cy="18" r="8"/><path d="M10 4l4 12h-8z" fill="currentColor"/><text x="10" y="3" font-size="5" text-anchor="middle" fill="currentColor" stroke="none">N</text></svg>
+    <svg class="bb-n" data-m viewBox="0 0 24 34" fill="none" stroke="currentColor" stroke-width=".8" stroke-linejoin="round" aria-hidden="true"><text x="12" y="7" font-size="7" text-anchor="middle" fill="currentColor" stroke="none" font-family="IBM Plex Mono, monospace">N</text><circle cx="12" cy="22" r="10"/><path d="M2 22h3M19 22h3M12 32v-2"/><path d="M12 10.5 7.6 29.5 12 26z"/><path d="M12 10.5 16.4 29.5 12 26z" fill="currentColor"/></svg>
     <table class="bp-tb bb-tb" data-m>
       <tr><td>NAME</td><td colspan="3">${esc(d.name)}</td></tr>
       <tr><td>SHEET</td><td>2 / 2</td><td>REV</td><td>B</td></tr>
