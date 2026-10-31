@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0e">
+<title>Super Namecard · Showroom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;900&family=VT323&family=Archivo+Black&family=Bungee&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@500;900&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .picker{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;z-index:20;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 12px;pointer-events:none}
+  .picker button{pointer-events:auto;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .picker button[aria-pressed="true"]{background:var(--ui-fg);color:var(--page-bg)}
+  .picker .me{margin-left:6px}
+  html.clean .picker{display:none}
+  html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
+  html:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+  html.land:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
+  @media (min-width:700px){html:not(.clean) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+<div class="picker" id="picker" role="group" aria-label="Card style"></div>
+<main class="stage" id="stage"></main>
+<script type="module">
+import { STYLES } from "./js/templates.js";
+import { PRESETS, JED } from "./js/presets.js";
+import { mountCard } from "./js/runtime.js";
+
+const q = new URLSearchParams(location.search);
+let style = STYLES.some((s) => s.id === q.get("style")) ? q.get("style") : "obsidian";
+let me = q.get("me") === "1";
+if (q.has("clean")) document.documentElement.classList.add("clean");
+
+const stage = document.getElementById("stage");
+const picker = document.getElementById("picker");
+let card = null;
+
+function mount() {
+  card && card.destroy();
+  const root = document.documentElement;
+  root.className = root.className.replace(/\bst-\S+/g, "").trim();
+  root.classList.add("st-" + style);
+  card = mountCard(stage, { style, data: me ? JED : PRESETS[style] });
+  picker.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === style));
+  picker.querySelector(".me").setAttribute("aria-pressed", me);
+  const u = new URL(location.href);
+  u.searchParams.set("style", style);
+  me ? u.searchParams.set("me", "1") : u.searchParams.delete("me");
+  history.replaceState(null, "", u);
+}
+
+picker.innerHTML = STYLES.map((s) => `<button type="button" data-s="${s.id}">${s.name}</button>`).join("") + `<button type="button" class="me">Use my info</button>`;
+picker.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.s) style = b.dataset.s; else me = !me;
+  mount();
+});
+mount();
+</script>
+</body>
+</html>
