@@ -17,7 +17,7 @@ CATALOG = [
         "sku": "pro",
         "name": "Super Namecard Pro",
         "description": "All card styles, your own link, and unlimited video, GIF and image exports for a year.",
-        "price": {"amount": "599", "description": "Pro yearly", "billing_cycle": {"interval": "year", "frequency": 1}},
+        "price": {"amount": "990", "description": "Pro yearly", "billing_cycle": {"interval": "year", "frequency": 1}},
     },
     {
         "sku": "share_pack",
@@ -67,14 +67,21 @@ def catalog():
                                              "tax_category": "standard", "custom_data": {"sku": item["sku"]}})["data"]
         prices = api("GET", f"/prices?product_id={prod['id']}&status=active")["data"]
         p = item["price"]
-        price = next((x for x in prices if x["unit_price"]["amount"] == p["amount"] and x["billing_cycle"] == p["billing_cycle"]), None)
+        # Prices include tax: the amount shown is what the customer pays, everywhere.
+        price = next((x for x in prices if x["unit_price"]["amount"] == p["amount"] and x["billing_cycle"] == p["billing_cycle"]
+                      and x["tax_mode"] == "internal"), None)
         if not price:
             body = {"product_id": prod["id"], "description": p["description"], "name": item["name"],
                     "unit_price": {"amount": p["amount"], "currency_code": "USD"},
-                    "quantity": {"minimum": 1, "maximum": 1}, "custom_data": {"sku": item["sku"]}}
+                    "quantity": {"minimum": 1, "maximum": 1}, "custom_data": {"sku": item["sku"]}, "tax_mode": "internal"}
             if p["billing_cycle"]:
                 body["billing_cycle"] = p["billing_cycle"]
             price = api("POST", "/prices", body)["data"]
+        # Old prices stay valid for existing subscriptions but can't be bought any more.
+        for old in prices:
+            if old["id"] != price["id"]:
+                api("PATCH", f"/prices/{old['id']}", {"status": "archived"})
+                print(f"  archived old price {old['id']} ${int(old['unit_price']['amount']) / 100:.2f}")
         print(f"{item['sku']}: product={prod['id']} price={price['id']} ${int(p['amount']) / 100:.2f}")
 
 

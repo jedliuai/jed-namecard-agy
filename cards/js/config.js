@@ -7,5 +7,5 @@ export const API = asked || "https://api.999368.xyz";
 export const PADDLE = {
   env: "sandbox",
   token: "test_97afc8e77516a14895c42ee136d",
-  prices: { pro: "pri_01m6bkekw5nm03aasejsx4zsg9", share_pack: "pri_01m6bkepcssndyrrbcevcz7phv" },
+  prices: { pro: "pri_01m6bnhxmy7jtsanzgjtjvk1aj", share_pack: "pri_01m6bnj25h0ne973agxqc7jets" },
 };

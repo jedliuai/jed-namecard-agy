@@ -20,8 +20,7 @@
   html.clean .picker{display:none}
   html.immersive .picker{display:none}
   /* ?render: the video/image exporter drives the card; no UI at all. */
-  html.render .actions,html.render .hint,html.render .toast{display:none!important}
-  html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
+  html.render .actions,html.render .hint,html.render .toast{display:none!important}  html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
   html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
   html.land:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
   @media (min-width:700px){html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}}
@@ -55,7 +54,9 @@ function mount() {
   const root = document.documentElement;
   root.className = root.className.replace(/\bst-\S+/g, "").trim();
   root.classList.add("st-" + style);
-  card = mountCard(stage, { style, data: me ? JED : PRESETS[style] });
+  // The exporter hands over someone's own card as window.__cardData.
+  const own = render && window.__cardData;
+  card = mountCard(stage, { style, data: own || (me ? JED : PRESETS[style]) });
   if (render) window.__card = card;
   picker.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === style));
   picker.querySelector(".me").setAttribute("aria-pressed", me);
@@ -75,7 +76,7 @@ picker.addEventListener("click", (e) => {
   mount();
 });
 mount();
-if (!render) mountAccount(picker);
+if (!render) mountAccount(picker, () => ({ style, data: me ? JED : PRESETS[style] }));
 // Showroom only: once the visitor starts playing, fetch the other styles' music in the background.
 addEventListener("pointerdown", () => preload(STYLES.map((s) => s.id)), { once: true });
 </script>
