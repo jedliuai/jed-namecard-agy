@@ -4,7 +4,7 @@
 # only this tunnel's credentials. Leaves every other tunnel and service alone. Safe to re-run.
 set -euo pipefail
 NAME=namecard
-ZONE=999368.xyz
+ZONE=1name.cards
 HOST=api.$ZONE
 ORIGIN=http://127.0.0.1:18790
 METRICS=127.0.0.1:18791

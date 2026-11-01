@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Each account's own card: what the styles show, plus its link name (slug.999368.xyz) and photo.
+// Each account's own card: what the styles show, plus its link name (slug.1name.cards) and photo.
 // One card per account for now. Only the owner can read or change it; exports read it server-side.
 migrate((app) => {
   const users = app.findCollectionByNameOrId("users");

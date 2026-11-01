@@ -1,15 +1,21 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-// Public card pages: name.999368.xyz shows that account's saved card in its chosen style. The page is
-// the card runtime from pb_public/cards with the card's data written into it, plus link-preview tags.
-// A link is live while its owner has Pro (the Pro plan includes "your own link").
+// The front page of every 1name.cards host. 1name.cards itself is the app (pb_public/index.html, the
+// showroom and editor); name.1name.cards shows that account's saved card in its chosen style, with the
+// card's data written into the page plus link-preview tags. A card link is live while its owner has
+// Pro (the Pro plan includes "your own link").
 routerAdd("GET", "/{$}", (e) => {
-  const DOMAIN = "999368.xyz";
+  const DOMAIN = "1name.cards";
   const LINK_NEEDS_PRO = true;
-  const SHOWROOM = "https://saas-cards.jed-namecard-agy.pages.dev/cards/";
+  const SHOWROOM = `https://${DOMAIN}/`;
   const STYLES = ["noir", "holo", "terminal", "swiss", "pop", "ink", "aurora", "blueprint", "helix"];
 
   const host = (e.request.host || "").split(":")[0].toLowerCase();
+  if (host === DOMAIN) {
+    e.response.header().set("Cache-Control", "no-cache");
+    return e.html(200, toString($os.readFile(`${__hooks}/../pb_public/index.html`)));
+  }
+  if (host === "www." + DOMAIN) return e.redirect(301, SHOWROOM);
   if (!host.endsWith("." + DOMAIN)) throw new NotFoundError();
   const slug = host.slice(0, -(DOMAIN.length + 1));
   if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(slug) || slug === "api") throw new NotFoundError();
@@ -53,7 +59,7 @@ routerAdd("GET", "/{$}", (e) => {
 <a class="made" href="${esc(SHOWROOM)}" target="_blank" rel="noopener">Made with Super Namecard · get yours</a>
 <script type="application/json" id="card-data">${json}</script>
 <script type="module">
-import { mountCard } from "/cards/js/runtime.js";
+import { mountCard } from "/js/runtime.js";
 const { style, data } = JSON.parse(document.getElementById("card-data").textContent);
 document.documentElement.classList.add("st-" + style);
 mountCard(document.getElementById("stage"), { style, data });

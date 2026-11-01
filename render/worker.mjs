@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { renderPack } from "./render.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const API = process.env.API_URL || "https://api.999368.xyz";
+const API = process.env.API_URL || "https://api.1name.cards";
 const TOKEN = process.env.RENDER_WORKER_TOKEN;
 const SITE = path.resolve(process.env.SITE_DIR || path.join(HERE, "site"));
 const WORK = process.env.WORK_DIR || "/tmp/exports";

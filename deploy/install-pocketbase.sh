@@ -72,7 +72,7 @@ systemctl is-active $SVC
 # First superuser: a random password kept in a root-only file (never printed).
 if [ ! -s $BASE/secrets/pb-superuser.txt ]; then
   pass=$(head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 28)
-  email=admin@999368.xyz
+  email=admin@1name.cards
   sudo -u $SVC $PB_DIR/pocketbase superuser upsert "$email" "$pass" --dir=$PB_DIR/pb_data >/dev/null
   printf 'PB_SUPERUSER_EMAIL=%s\nPB_SUPERUSER_PASSWORD=%s\n' "$email" "$pass" > $BASE/secrets/pb-superuser.txt
   chmod 600 $BASE/secrets/pb-superuser.txt

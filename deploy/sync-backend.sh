@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copies deploy/pb_hooks, deploy/pb_migrations and the card site (cards/, served as pb_public/cards for
-# the public card pages) to the VPS and restarts PocketBase.
+# Copies deploy/pb_hooks, deploy/pb_migrations and the card site (cards/, served as pb_public: the app
+# at 1name.cards and the files of the public card pages) to the VPS and restarts PocketBase.
 # Run locally: bash deploy/sync-backend.sh path/to/vps.sh   (vps.sh = ssh wrapper that runs its args remotely)
 set -euo pipefail
 VPS=${1:?usage: sync-backend.sh path/to/vps.sh}
@@ -15,7 +15,7 @@ tar -czf - pb_hooks pb_migrations -C .. cards | bash "$VPS" 'set -e
   done
   # The site is swapped in whole, so a page never mixes old and new files.
   sudo -n rm -rf $pb/pb_public.new && sudo -n install -d -m 750 -o root -g namecard-pb $pb/pb_public.new
-  sudo -n cp -r $t/cards $pb/pb_public.new/cards
+  sudo -n cp -r $t/cards/. $pb/pb_public.new/
   sudo -n chown -R root:namecard-pb $pb/pb_public.new
   sudo -n find $pb/pb_public.new -type d -exec chmod 750 {} + -o -type f -exec chmod 640 {} +
   sudo -n rm -rf $pb/pb_public.old; [ -d $pb/pb_public ] && sudo -n mv $pb/pb_public $pb/pb_public.old

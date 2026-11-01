@@ -15,7 +15,7 @@ export const STYLES = [
 ];
 export const ALIASES = { obsidian: "noir" };
 
-export const DOMAIN = "999368.xyz";
+export const DOMAIN = "1name.cards";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 export const isCJK = (s) => /[㐀-鿿]/.test(String(s ?? ""));

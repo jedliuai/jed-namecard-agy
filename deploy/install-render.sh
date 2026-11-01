@@ -12,7 +12,7 @@ docker build -q -f "$SRC/render/Dockerfile" -t namecard-render:latest "$SRC"
 if [ ! -s $SECRETS/render-worker.env ]; then
   tok=$(head -c 48 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 48)
   printf 'RENDER_WORKER_TOKEN=%s\n' "$tok" > $SECRETS/render-worker.env
-  printf 'RENDER_WORKER_TOKEN=%s\nAPI_URL=https://api.999368.xyz\n' "$tok" > $SECRETS/render.env
+  printf 'RENDER_WORKER_TOKEN=%s\nAPI_URL=https://api.1name.cards\n' "$tok" > $SECRETS/render.env
   chmod 600 $SECRETS/render-worker.env $SECRETS/render.env
 fi
 pb=/etc/systemd/system/namecard-pb.service
