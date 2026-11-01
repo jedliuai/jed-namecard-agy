@@ -199,7 +199,8 @@ function exportSection(pro) {
   const rows = exportsList.map((x) => {
     let state;
     if (x.status === "done") {
-      state = (x.files || []).map((f) => {
+      const rank = (f) => FILE_LABELS.findIndex(([re]) => re.test(f));
+      state = [...(x.files || [])].sort((a, b) => rank(a) - rank(b)).map((f) => {
         const label = (FILE_LABELS.find(([re]) => re.test(f)) || [, "File"])[1];
         const url = `${API}/api/files/${x.collectionId}/${x.id}/${encodeURIComponent(f)}?token=${fileToken}&download=1`;
         return `<a href="${esc(url)}">${label}</a>`;
