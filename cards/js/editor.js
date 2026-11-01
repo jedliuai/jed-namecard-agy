@@ -1,7 +1,7 @@
 // "My card" editor: a side panel (a bottom sheet on phones) whose fields update the card on screen as
 // you type. Saving needs an account; until then the text stays in this browser as a draft.
 import { DOMAIN, initials } from "./templates.js";
-import { signedIn, savedCard, cardData, saveCard, openAccount } from "./account.js";
+import { signedIn, hasPro, savedCard, cardData, saveCard, openAccount } from "./account.js";
 
 const DRAFT = "nc-draft";
 const MAIN = [
@@ -23,6 +23,7 @@ const KEYS = [...MAIN, ...EXTRA].map((f) => f[0]).concat("slug");
 
 let panel;
 let onChange = () => {};
+let getStyle = () => "";
 let draft = {};
 let photo;            // { blob, url } new photo · false removed · undefined unchanged
 let dirty = false;
@@ -109,6 +110,7 @@ function build() {
       <label class="ed-f"><span>Card link</span>
         <div class="ed-slug"><input name="slug" maxlength="30" placeholder="${esc(slugify(draft.name) || "your-name")}" value="${esc(draft.slug)}" autocapitalize="off" spellcheck="false"><em>.${DOMAIN}</em></div>
       </label>
+      <p class="ed-live"></p>
       <details class="ed-more"><summary>More, for some styles</summary>${EXTRA.map(field).join("")}</details>
     </form>
     <footer class="ed-foot"><p class="ed-msg"></p><button type="button" class="ed-save" data-save>Save my card</button></footer>`;
@@ -123,6 +125,15 @@ function paint() {
   if (av) av.innerHTML = d.avatar ? `<img src="${esc(d.avatar)}" alt="">` : esc(initials(d.name));
   const rm = panel.querySelector("[data-rmphoto]");
   if (rm) rm.hidden = !d.avatar;
+  // Where the card can be seen: live with Pro, once saved.
+  const live = panel.querySelector(".ed-live");
+  const rec = savedCard();
+  if (live) {
+    const url = rec && `https://${rec.slug}.${DOMAIN}`;
+    live.innerHTML = !rec ? "Save your card to get this link."
+      : hasPro() ? `Live at <a href="${esc(url)}" target="_blank" rel="noopener">${esc(rec.slug)}.${DOMAIN}</a> in ${esc(rec.style || "noir")} style.`
+      : "Your link goes live with Pro.";
+  }
   const msg = panel.querySelector(".ed-msg");
   if (msg) {
     msg.textContent = error || status || (signedIn() ? "" : "You can try it out now. Saving asks you to sign in.");
@@ -145,6 +156,7 @@ async function save() {
   const fields = {};
   for (const k of KEYS) fields[k] = String(draft[k] || "").trim();
   fields.slug = slugify(fields.slug || fields.name);
+  fields.style = getStyle();   // the style on screen is the one the public link shows
   // Names in Chinese and other scripts have no Latin letters to build a link from.
   if (fields.slug.length < 3) fields.slug = `card-${Math.random().toString(36).slice(2, 7)}`;
   if (!signedIn()) {
@@ -165,7 +177,7 @@ async function save() {
     panel.querySelector('[name="slug"]').value = fields.slug;
     dirty = false;
     dropDraft();
-    status = "Saved. This is now your card in every style.";
+    status = "Saved.";
   } catch (e) {
     status = "";
     const slugErr = e.data && e.data.slug;
@@ -201,8 +213,10 @@ export function closeEditor() {
 }
 
 // onPreview(): called whenever the card on screen should be redrawn (typing, photo, save, close).
-export function mountEditor({ onPreview }) {
+// getStyle(): the style on screen, saved with the card for its public link.
+export function mountEditor({ onPreview, style }) {
   onChange = onPreview;
+  if (style) getStyle = style;
   panel = document.createElement("aside");
   panel.className = "ed";
   panel.setAttribute("aria-label", "Edit my card");

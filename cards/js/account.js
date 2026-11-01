@@ -79,6 +79,7 @@ async function loadCard() {
 }
 
 export const signedIn = () => !!auth;
+export const hasPro = () => proActive();
 export const savedCard = () => card;
 export const openAccount = () => open();
 
@@ -393,5 +394,5 @@ export function mountAccount(bar, getCurrent) {
   // Paddle's hosted payment links return here with ?_ptxn=…; loading Paddle.js resumes that checkout.
   if (new URLSearchParams(location.search).has("_ptxn")) paddle();
   // A returning visitor sees their own card without opening anything.
-  if (auth) refresh().then(loadCard).catch(() => {});
+  if (auth) refresh().then(loadEntitlement).then(loadCard).catch(() => {});
 }

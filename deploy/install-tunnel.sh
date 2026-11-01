@@ -4,7 +4,8 @@
 # only this tunnel's credentials. Leaves every other tunnel and service alone. Safe to re-run.
 set -euo pipefail
 NAME=namecard
-HOST=api.999368.xyz
+ZONE=999368.xyz
+HOST=api.$ZONE
 ORIGIN=http://127.0.0.1:18790
 METRICS=127.0.0.1:18791
 SVC=namecard-tunnel
@@ -41,6 +42,12 @@ ingress:
     path: ^/api/collections/_superusers/
     service: http_status:404
   - hostname: $HOST
+    service: $ORIGIN
+  # Public card pages (name.$ZONE): only the page and its files, never the API or the admin UI.
+  - hostname: "*.$ZONE"
+    path: ^/(_|api)/
+    service: http_status:404
+  - hostname: "*.$ZONE"
     service: $ORIGIN
   - service: http_status:404
 EOF

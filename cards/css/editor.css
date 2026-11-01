@@ -53,3 +53,5 @@ html.editing.land .flipper{width:min(90cqw,90cqh * 1.5852)}
   html.editing .picker button{flex:none}
   html.editing:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 48px)}
 }
+.ed-live{margin:-4px 0 2px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.55)}
+.ed-live a{color:#fff;font-weight:600}

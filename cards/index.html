@@ -92,6 +92,7 @@ if (!render) {
   mountAccount(picker, () => ({ style }));
   let redraw;
   mountEditor({
+    style: () => style,
     onPreview() {
       me = true;
       clearTimeout(redraw);
