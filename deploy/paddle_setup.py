@@ -4,6 +4,8 @@
   python -I paddle_setup.py ENV_FILE webhook URL         -> creates/finds the notification destination and
                                                            prints PADDLE_WEBHOOK_SECRET=... (pipe it, never show it)
   python -I paddle_setup.py ENV_FILE simulate URL EVENT  -> sends a signed test event to the destination
+  python -I paddle_setup.py ENV_FILE move OLD_URL NEW_URL -> points the destination at a new address; the
+                                                           signing secret stays the same
 
 ENV_FILE holds PADDLE_SANDBOX_API_KEY=pdl_sdbx_... (or PADDLE_API_KEY for live).
 """
@@ -111,6 +113,12 @@ def main():
         sim = api("POST", "/simulations", {"notification_setting_id": d["id"], "type": sys.argv[4], "name": "namecard check " + sys.argv[4]})["data"]
         run = api("POST", f"/simulations/{sim['id']}/runs")["data"]
         print(f"simulation {sim['id']} run {run['id']} status {run['status']}")
+    elif cmd == "move":
+        d = next((x for x in api("GET", "/notification-settings")["data"] if x["destination"] == sys.argv[3]), None)
+        if not d:
+            sys.exit(f"no notification setting for {sys.argv[3]}")
+        d = api("PATCH", f"/notification-settings/{d['id']}", {"destination": sys.argv[4]})["data"]
+        print(f"notification setting {d['id']} -> {d['destination']} active={d['active']}")
     else:
         sys.exit(__doc__)
 

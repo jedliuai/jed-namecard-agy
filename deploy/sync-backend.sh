@@ -18,8 +18,8 @@ tar -czf - pb_hooks pb_migrations -C .. cards | bash "$VPS" 'set -e
   sudo -n cp -r $t/cards/. $pb/pb_public.new/
   sudo -n chown -R root:namecard-pb $pb/pb_public.new
   sudo -n find $pb/pb_public.new -type d -exec chmod 750 {} + -o -type f -exec chmod 640 {} +
-  sudo -n rm -rf $pb/pb_public.old; [ -d $pb/pb_public ] && sudo -n mv $pb/pb_public $pb/pb_public.old
-  sudo -n mv $pb/pb_public.new $pb/pb_public && sudo -n rm -rf $pb/pb_public.old
+  sudo -n rm -rf $pb/pb_public.old; sudo -n test -d $pb/pb_public && sudo -n mv $pb/pb_public $pb/pb_public.old
+  sudo -n mv -T $pb/pb_public.new $pb/pb_public && sudo -n rm -rf $pb/pb_public.old
   sudo -n systemctl restart namecard-pb
   sleep 3
   systemctl is-active namecard-pb

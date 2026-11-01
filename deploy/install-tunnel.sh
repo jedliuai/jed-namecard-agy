@@ -56,7 +56,7 @@ chmod 644 $ETC/config.yml
 id -u $SVC >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin $SVC
 cat > /etc/systemd/system/$SVC.service <<EOF
 [Unit]
-Description=Super Namecard Cloudflare Tunnel ($HOST)
+Description=Super Namecard Cloudflare Tunnel ($ZONE)
 After=network-online.target namecard-pb.service
 Wants=network-online.target
 
@@ -66,7 +66,7 @@ User=$SVC
 Group=$SVC
 LoadCredential=tunnel.json:$ETC/credentials.json
 ExecStart=$BIN --no-autoupdate --config $ETC/config.yml tunnel run
-Restart=on-failure
+Restart=always
 RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
