@@ -42,14 +42,18 @@ async function pb(path, { method = "GET", body } = {}) {
   return d;
 }
 
-async function signIn(email, password) {
-  const d = await pb("/api/collections/users/auth-with-password", { method: "POST", body: { identity: email, password } });
-  save({ token: d.token, user: { id: d.record.id, email: d.record.email } });
+// Sign-in is an emailed 6-digit code; a first code also creates the account (deploy/pb_hooks/auth.pb.js).
+let codeFor = null;   // { email, otpId } once a code has been sent
+
+async function sendCode(email) {
+  const d = await pb("/api/collections/users/request-otp", { method: "POST", body: { email } });
+  codeFor = { email, otpId: d.otpId };
 }
 
-async function signUp(email, password) {
-  await pb("/api/collections/users/records", { method: "POST", body: { email, password, passwordConfirm: password } });
-  await signIn(email, password);
+async function signInWithCode(code) {
+  const d = await pb("/api/collections/users/auth-with-otp", { method: "POST", body: { otpId: codeFor.otpId, password: code } });
+  save({ token: d.token, user: { id: d.record.id, email: d.record.email } });
+  codeFor = null;
 }
 
 async function refresh() {
@@ -218,19 +222,27 @@ function exportSection(pro) {
 function render() {
   if (!dialog) return;
   // Keep what was typed when the panel redraws for a status line.
-  const typed = dialog.querySelector(".acct-form");
-  const kept = typed && { email: typed.email.value, password: typed.password.value };
+  const typed = dialog.querySelector(".acct-form input");
+  const kept = typed && typed.value;
   let body;
-  if (!auth) {
+  if (!auth && !codeFor) {
     body = `
       <h2>Your account</h2>
-      <p class="acct-sub">Sign in to get Pro or buy share packs.</p>
-      <form class="acct-form">
-        <input name="email" type="email" autocomplete="email" placeholder="Email" required>
-        <input name="password" type="password" autocomplete="current-password" placeholder="Password (8+ characters)" minlength="8" required>
+      <p class="acct-sub">Sign in or create an account with your email. We'll send you a 6-digit code, no password needed.</p>
+      <form class="acct-form" data-step="email">
+        <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        <button class="acct-go">Email me a code</button>
+      </form>`;
+  } else if (!auth) {
+    body = `
+      <h2>Check your email</h2>
+      <p class="acct-sub">We sent a 6-digit code to <b>${esc(codeFor.email)}</b>. It works for 10 minutes.</p>
+      <form class="acct-form" data-step="code">
+        <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" required>
+        <button class="acct-go">Sign in</button>
         <div class="acct-row">
-          <button class="acct-go" value="in">Sign in</button>
-          <button class="acct-alt" value="up">Create account</button>
+          <button type="button" class="acct-alt" data-resend>Send a new code</button>
+          <button type="button" class="acct-alt" data-other>Use another email</button>
         </div>
       </form>`;
   } else {
@@ -254,30 +266,38 @@ function render() {
     ${body}
     ${busy ? `<p class="acct-busy">${esc(busy)}</p>` : ""}
     ${error ? `<p class="acct-err">${esc(error)}</p>` : ""}`;
-  const form = dialog.querySelector(".acct-form");
-  if (form && kept) {
-    form.email.value = kept.email;
-    form.password.value = kept.password;
-  }
+  const input = dialog.querySelector(".acct-form input");
+  if (input && kept && input.name === typed.name) input.value = kept;
   dialog.querySelectorAll("button:not([data-close])").forEach((b) => (b.disabled = !!busy || "wait" in b.dataset));
 }
 
-async function submit(form, mode) {
-  const email = form.email.value.trim();
-  const password = form.password.value;
+async function submit(form) {
   if (!form.reportValidity()) return;
+  const step = form.dataset.step;
   error = "";
-  busy = mode === "up" ? "Creating your account…" : "Signing in…";
+  busy = step === "email" ? "Sending your code…" : "Signing in…";
   render();
   try {
-    await (mode === "up" ? signUp(email, password) : signIn(email, password));
-    await loadEntitlement();
+    if (step === "email") await sendCode(form.email.value.trim());
+    else {
+      await signInWithCode(form.code.value.trim());
+      await Promise.all([loadEntitlement(), loadExports()]);
+    }
   } catch (e) {
-    if (e.status === 429) error = "Too many tries. Wait a few seconds.";
-    else if (mode === "up" && e.data.email) error = e.data.email.code === "validation_not_unique" ? "That email already has an account. Sign in instead." : "Please check the email address.";
-    else if (mode === "up" && e.data.password) error = "Password needs at least 8 characters.";
-    else error = mode === "up" ? "Could not create the account." : "Wrong email or password.";
+    if (e.status === 429) error = e.message.startsWith("We just sent") ? e.message : "Too many tries. Wait a minute and try again.";
+    else if (step === "email") error = e.data.email ? "Please check the email address." : "Couldn't send the code. Please try again.";
+    else error = "That code is wrong or has expired.";
   }
+  busy = "";
+  render();
+  dialog.querySelector(".acct-form input")?.focus();
+}
+
+async function resendCode() {
+  error = "";
+  busy = "Sending a new code…";
+  render();
+  try { await sendCode(codeFor.email); } catch (e) { error = e.status === 429 ? e.message : "Couldn't send the code. Please try again."; }
   busy = "";
   render();
 }
@@ -305,12 +325,14 @@ export function mountAccount(bar, getCurrent) {
     if (outside || e.target.closest("[data-close]")) return dialog.close();
     const b = e.target.closest("button");
     if (!b) return;
-    if (b.form) { e.preventDefault(); return submit(b.form, b.value); }
+    if ("resend" in b.dataset) return resendCode();
+    if ("other" in b.dataset) { codeFor = null; error = ""; return render(); }
+    if (b.form) { e.preventDefault(); return submit(b.form); }
     if (b.dataset.buy) return buy(b.dataset.buy);
     if ("export" in b.dataset) return orderExport();
     if ("out" in b.dataset) { save(null); ent = null; exportsList = []; error = ""; render(); }
   });
-  dialog.addEventListener("submit", (e) => { e.preventDefault(); submit(e.target, "in"); });
+  dialog.addEventListener("submit", (e) => { e.preventDefault(); submit(e.target); });
 
   const btn = document.createElement("button");
   btn.type = "button";
