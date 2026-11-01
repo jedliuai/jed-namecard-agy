@@ -8,9 +8,13 @@ routerAdd("POST", "/api/exports", (e) => {
   const body = e.requestInfo().body || {};
   const style = String(body.style || "");
   if (!lib.STYLES.includes(style)) throw new BadRequestError("Unknown style.");
-  const card = lib.cleanCard(body.card);
-  if (!card.name) throw new BadRequestError("The card needs a name.");
   const uid = e.auth.id;
+  // Always the account's own saved card, read here rather than taken from the browser.
+  let saved;
+  try { saved = e.app.findFirstRecordByData("cards", "user", uid); } catch (_) {
+    throw new BadRequestError("Save your card first, then export it.");
+  }
+  const card = require(`${__hooks}/_cards_lib.js`).toData(e.app, saved);
 
   let created = null;
   e.app.runInTransaction((tx) => {

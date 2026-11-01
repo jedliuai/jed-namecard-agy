@@ -1,5 +1,6 @@
 // Account panel: email sign-in on PocketBase, plan status, Paddle checkout for Pro and share packs,
-// and share-pack exports of the card on screen (rendered on the server, downloaded from here).
+// and share-pack exports of the user's saved card (rendered on the server, downloaded from here).
+// Also keeps that saved card for the editor (editor.js); "nc:account" fires whenever it or the sign-in changes.
 // Payments are only trusted once Paddle's signed webhook has updated the user's entitlement on the server.
 import { API, PADDLE } from "./config.js";
 import { STYLES } from "./templates.js";
@@ -17,8 +18,9 @@ let fileToken = "";
 let busy = "";
 let error = "";
 let dialog;
-let current = () => null;   // the card on screen: { style, data }
+let current = () => null;   // the style on screen: { style }
 let polling = null;
+let card = null;            // the user's saved card record, if any
 
 function read() {
   try { return JSON.parse(localStorage.getItem(STORE)) || null; } catch { return null; }
@@ -29,9 +31,10 @@ function save(a) {
 }
 
 async function pb(path, { method = "GET", body } = {}) {
-  const headers = { "content-type": "application/json" };
+  const form = body instanceof FormData;
+  const headers = form ? {} : { "content-type": "application/json" };
   if (auth) headers.authorization = auth.token;
-  const r = await fetch(API + path, { method, headers, body: body && JSON.stringify(body) });
+  const r = await fetch(API + path, { method, headers, body: body && (form ? body : JSON.stringify(body)) });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) {
     const e = new Error(d.message || "Request failed");
@@ -62,8 +65,46 @@ async function refresh() {
     const d = await pb("/api/collections/users/auth-refresh", { method: "POST" });
     save({ token: d.token, user: { id: d.record.id, email: d.record.email } });
   } catch (e) {
-    if (e.status === 401 || e.status === 403 || e.status === 404) save(null);
+    // Expired token or deleted account; a token that just can't be renewed stays usable until it expires.
+    if (e.status === 401 || e.status === 404) save(null);
   }
+}
+
+const emit = () => document.dispatchEvent(new Event("nc:account"));
+
+async function loadCard() {
+  card = null;
+  if (auth) card = (await pb("/api/collections/cards/records?perPage=1")).items[0] || null;
+  emit();
+}
+
+export const signedIn = () => !!auth;
+export const savedCard = () => card;
+export const openAccount = () => open();
+
+// A saved card as the templates want it; the photo is served by the backend.
+export function cardData(rec) {
+  if (!rec) return null;
+  const d = {};
+  for (const k of ["name", "sub", "title", "company", "phone", "wa", "email", "slug", "stat", "greet", "industry", "no"]) if (rec[k]) d[k] = rec[k];
+  if (!d.wa && d.phone) d.wa = d.phone;   // most people use one number for both
+  if (rec.avatar) d.avatar = `${API}/api/files/${rec.collectionId}/${rec.id}/${encodeURIComponent(rec.avatar)}`;
+  return d;
+}
+
+// fields: the card's text fields. photo: a Blob to upload, false to remove it, undefined to keep it.
+export async function saveCard(fields, photo) {
+  const body = new FormData();
+  for (const [k, v] of Object.entries(fields)) body.append(k, v ?? "");
+  if (photo) body.append("avatar", photo, "photo.jpg");
+  else if (photo === false) body.append("avatar", "");
+  if (card) card = await pb(`/api/collections/cards/records/${card.id}`, { method: "PATCH", body });
+  else {
+    body.append("user", auth.user.id);
+    card = await pb("/api/collections/cards/records", { method: "POST", body });
+  }
+  emit();
+  return card;
 }
 
 async function loadEntitlement() {
@@ -103,7 +144,7 @@ async function orderExport() {
   busy = "Starting your export…";
   render();
   try {
-    await pb("/api/exports", { method: "POST", body: { style: c.style, card: c.data } });
+    await pb("/api/exports", { method: "POST", body: { style: c.style } });
     await Promise.all([loadExports(), loadEntitlement()]);
   } catch (e) {
     error = e.status === 401 ? "Please sign in again." : e.message;
@@ -190,13 +231,20 @@ const FILE_LABELS = [[/\.mp4$/, "Video"], [/\.gif$/, "GIF"], [/_front_/, "Front"
 function exportSection(pro) {
   const c = current();
   let action = "";
-  if (c) {
+  if (c && !card) {
+    action = `
+      <div class="acct-export">
+        <b>Make your own card</b>
+        <p>Add your name, contacts and photo, then export it as a video, GIF and images.</p>
+        <button class="acct-go" data-edit>Create my card</button>
+      </div>`;
+  } else if (c) {
     const can = pro || credits() > 0;
     const what = pro ? "included in Pro" : credits() > 0 ? "uses 1 share pack" : "";
     action = `
       <div class="acct-export">
-        <b>Export this ${esc(styleName(c.style))} card</b>
-        <p>An HD vertical video with music, a looping GIF and 3 images, made on our server in about 3 minutes.</p>
+        <b>Export your card in ${esc(styleName(c.style))} style</b>
+        <p>An HD vertical video with music, a looping GIF and 3 images of your saved card, made on our server in about 3 minutes.</p>
         ${can ? `<button class="acct-go" data-export ${pending() ? "data-wait" : ""}>Export · ${what}</button>` : `<p class="acct-note">Get Pro or a share pack below to export.</p>`}
       </div>`;
   }
@@ -281,7 +329,7 @@ async function submit(form) {
     if (step === "email") await sendCode(form.email.value.trim());
     else {
       await signInWithCode(form.code.value.trim());
-      await Promise.all([loadEntitlement(), loadExports()]);
+      await Promise.all([loadEntitlement(), loadExports(), loadCard()]);
     }
   } catch (e) {
     if (e.status === 429) error = e.message.startsWith("We just sent") ? e.message : "Too many tries. Wait a minute and try again.";
@@ -307,13 +355,13 @@ async function open() {
   if (!dialog.open) dialog.showModal();
   if (auth) {
     await refresh();
-    try { await Promise.all([loadEntitlement(), loadExports()]); } catch {}
+    try { await Promise.all([loadEntitlement(), loadExports(), loadCard()]); } catch {}
     render();
     watch();
   }
 }
 
-// bar: where the Account button goes. getCurrent: returns the card on screen as { style, data }.
+// bar: where the Account button goes. getCurrent: returns the style on screen as { style }.
 export function mountAccount(bar, getCurrent) {
   if (getCurrent) current = getCurrent;
   dialog = document.createElement("dialog");
@@ -330,7 +378,8 @@ export function mountAccount(bar, getCurrent) {
     if (b.form) { e.preventDefault(); return submit(b.form); }
     if (b.dataset.buy) return buy(b.dataset.buy);
     if ("export" in b.dataset) return orderExport();
-    if ("out" in b.dataset) { save(null); ent = null; exportsList = []; error = ""; render(); }
+    if ("edit" in b.dataset) { dialog.close(); return document.dispatchEvent(new Event("nc:edit")); }
+    if ("out" in b.dataset) { save(null); ent = null; exportsList = []; card = null; error = ""; render(); emit(); }
   });
   dialog.addEventListener("submit", (e) => { e.preventDefault(); submit(e.target); });
 
@@ -343,4 +392,6 @@ export function mountAccount(bar, getCurrent) {
 
   // Paddle's hosted payment links return here with ?_ptxn=…; loading Paddle.js resumes that checkout.
   if (new URLSearchParams(location.search).has("_ptxn")) paddle();
+  // A returning visitor sees their own card without opening anything.
+  if (auth) refresh().then(loadCard).catch(() => {});
 }

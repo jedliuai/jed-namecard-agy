@@ -1,0 +1,55 @@
+/* "My card" editor (editor.js): a side panel on wide screens, a bottom sheet on phones. The card
+   stage moves into the space that is left so the live preview stays in view. */
+.ed{position:fixed;z-index:30;display:none;flex-direction:column;background:rgba(16,16,20,.97);color:#f4f4f6;font-family:"Inter Tight",system-ui,sans-serif;box-shadow:0 0 60px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.ed.open{display:flex}
+.ed-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 6px}
+.ed-head h2{margin:0;font-size:19px;font-weight:800}
+.ed-x{width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:rgba(255,255,255,.65);font-size:24px;line-height:1;cursor:pointer}
+.ed-x:hover{background:rgba(255,255,255,.08);color:#fff}
+.ed-body{flex:1;min-height:0;overflow:auto;padding:8px 18px 14px;display:grid;gap:10px;align-content:start;overscroll-behavior:contain}
+.ed-photo{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.ed-av{width:64px;height:64px;flex:none;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:rgba(255,255,255,.1);font-weight:800;font-size:20px}
+.ed-av img{width:100%;height:100%;object-fit:cover}
+.ed-photo-btns{display:flex;align-items:center;gap:12px}
+.ed-btn{display:inline-block;border-radius:999px;padding:8px 14px;background:#fff;color:#0b0b0e;font-size:13px;font-weight:600;cursor:pointer}
+.ed-btn:hover{background:#e8e8ec}
+.ed-link{border:0;background:none;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;padding:4px}
+.ed-link:hover{color:#fff}
+.ed-f{display:grid;gap:5px}
+.ed-f>span{font-size:12px;font-weight:600;color:rgba(255,255,255,.6)}
+.ed input:not([type=file]){width:100%;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:15px;padding:10px 12px;outline:none}
+.ed input:focus{border-color:rgba(255,255,255,.55)}
+.ed input::placeholder{color:rgba(255,255,255,.3)}
+.ed-slug{display:flex;align-items:center;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.06)}
+.ed-slug:focus-within{border-color:rgba(255,255,255,.55)}
+.ed .ed-slug input{border:0;background:none;min-width:0;padding-right:4px}
+.ed-slug em{font-style:normal;color:rgba(255,255,255,.45);font-size:14px;padding-right:12px;white-space:nowrap}
+.ed-more{border-top:1px solid rgba(255,255,255,.1);padding-top:10px;margin-top:2px}
+.ed-more summary{cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:10px}
+.ed-more[open]{display:grid;gap:10px}
+.ed-foot{padding:12px 18px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid rgba(255,255,255,.08);display:grid;gap:8px}
+.ed-msg{margin:0;min-height:1em;font-size:12.5px;color:rgba(255,255,255,.6)}
+.ed-msg.err{color:#ff8a80}
+.ed-save{width:100%;border:0;border-radius:999px;padding:12px 16px;background:#fff;color:#0b0b0e;font-size:15px;font-weight:700;cursor:pointer}
+.ed-save:hover{background:#e8e8ec}
+.ed-save:disabled{opacity:.55;cursor:default}
+
+/* While editing, the card's own buttons and hint step aside and the card takes their room. */
+html.editing .actions,html.editing .hint{display:none!important}
+html.editing .flipper{width:min(86cqw,90cqh * .6308)}
+html.editing.land .flipper{width:min(90cqw,90cqh * 1.5852)}
+
+@media (min-width:760px){
+  .ed{left:0;top:0;bottom:0;width:360px;border-right:1px solid rgba(255,255,255,.08)}
+  html.editing .stage{left:calc(50% + 180px);width:calc(100vw - 360px)}
+  html.editing .picker{left:360px}
+}
+@media (max-width:759px){
+  .ed{left:0;right:0;bottom:0;height:56dvh;border-radius:18px 18px 0 0;border-top:1px solid rgba(255,255,255,.1)}
+  html.editing .stage{top:22dvh;height:44dvh}
+  /* The style row scrolls sideways instead of wrapping, so the card keeps its room. */
+  html.editing .picker{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;pointer-events:auto;scrollbar-width:none;padding-bottom:4px}
+  html.editing .picker::-webkit-scrollbar{display:none}
+  html.editing .picker button{flex:none}
+  html.editing:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 48px)}
+}

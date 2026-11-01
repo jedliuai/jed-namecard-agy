@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/account.css">
+<link rel="stylesheet" href="css/editor.css">
 <style>
   .picker{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;z-index:20;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 12px;pointer-events:none}
   .picker button{pointer-events:auto;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -20,7 +21,9 @@
   html.clean .picker{display:none}
   html.immersive .picker{display:none}
   /* ?render: the video/image exporter drives the card; no UI at all. */
-  html.render .actions,html.render .hint,html.render .toast{display:none!important}  html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
+  html.render .actions,html.render .hint,html.render .toast{display:none!important}
+  .picker .edit[hidden]{display:none}
+  html:not(.clean) .hint{top:calc(env(safe-area-inset-top,0px) + 74px)}
   html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
   html.land:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}
   @media (min-width:700px){html:not(.clean):not(.immersive) .stage{padding-top:calc(env(safe-area-inset-top,0px) + 50px)}}
@@ -32,15 +35,16 @@
 <main class="stage" id="stage"></main>
 <script type="module">
 import { STYLES, ALIASES } from "./js/templates.js";
-import { PRESETS, JED } from "./js/presets.js";
+import { PRESETS } from "./js/presets.js";
 import { mountCard } from "./js/runtime.js";
 import { preload } from "./js/sound.js";
 import { mountAccount } from "./js/account.js";
+import { mountEditor, openEditor, closeEditor, isEditing, myData } from "./js/editor.js";
 
 const q = new URLSearchParams(location.search);
 const asked = ALIASES[q.get("style")] || q.get("style");
 let style = STYLES.some((s) => s.id === asked) ? asked : "noir";
-let me = q.get("me") === "1";
+let me = q.get("me") === "1";   // showing the visitor's own card instead of the samples
 if (q.has("clean")) document.documentElement.classList.add("clean");
 const render = q.has("render");
 if (render) document.documentElement.classList.add("clean", "immersive", "render");
@@ -49,34 +53,58 @@ const stage = document.getElementById("stage");
 const picker = document.getElementById("picker");
 let card = null;
 
-function mount() {
+// quiet: redraw without the entrance (live preview while editing).
+function mount(quiet = false) {
   card && card.destroy();
   const root = document.documentElement;
   root.className = root.className.replace(/\bst-\S+/g, "").trim();
   root.classList.add("st-" + style);
   // The exporter hands over someone's own card as window.__cardData.
-  const own = render && window.__cardData;
-  card = mountCard(stage, { style, data: own || (me ? JED : PRESETS[style]) });
+  const own = render ? window.__cardData : me && myData();
+  card = mountCard(stage, { style, data: own || PRESETS[style], quiet });
   if (render) window.__card = card;
   picker.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === style));
   picker.querySelector(".me").setAttribute("aria-pressed", me);
+  picker.querySelector(".edit").hidden = !me || isEditing();
   const u = new URL(location.href);
   u.searchParams.set("style", style);
   me ? u.searchParams.set("me", "1") : u.searchParams.delete("me");
   history.replaceState(null, "", u);
 }
 
-picker.innerHTML = STYLES.map((s) => `<button type="button" data-s="${s.id}">${s.name}</button>`).join("") + `<button type="button" class="me">Use my info</button>`;
+picker.innerHTML = STYLES.map((s) => `<button type="button" data-s="${s.id}">${s.name}</button>`).join("") +
+  `<button type="button" class="me">My card</button><button type="button" class="edit" hidden>Edit</button>`;
 picker.addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (!b) return;
   if (b.dataset.s) style = b.dataset.s;
-  else if (b.classList.contains("me")) me = !me;
+  else if (b.classList.contains("me")) {
+    // "My card" opens the editor; pressed again it goes back to the samples.
+    me = !me;
+    if (me) return openEditor();
+    closeEditor();
+  } else if (b.classList.contains("edit")) return openEditor();
   else return;
-  mount();
+  mount(isEditing());
 });
 mount();
-if (!render) mountAccount(picker, () => ({ style, data: me ? JED : PRESETS[style] }));
+if (!render) {
+  mountAccount(picker, () => ({ style }));
+  let redraw;
+  mountEditor({
+    onPreview() {
+      me = true;
+      clearTimeout(redraw);
+      redraw = setTimeout(() => {
+        if (!isEditing() && !myData()) me = false;   // closed without ever saving: back to the samples
+        mount(true);
+      }, 250);
+    },
+  });
+  // Signed in, signed out or saved: show the account's card if that is what's on screen.
+  document.addEventListener("nc:account", () => { if (me && !isEditing()) mount(true); });
+  document.addEventListener("nc:edit", () => { me = true; openEditor(); });
+}
 // Showroom only: once the visitor starts playing, fetch the other styles' music in the background.
 addEventListener("pointerdown", () => preload(STYLES.map((s) => s.id)), { once: true });
 </script>

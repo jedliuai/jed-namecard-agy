@@ -1,15 +1,8 @@
-// Demo cards for the showroom. Jed's card is real; everyone else is a made-up example
-// (phone numbers use ranges reserved for fiction, emails use the .example domain).
-
-export const JED = {
-  name: "Jed Liu", sub: "AI First × Global Trade", title: "AI Automation · Global Pharma Trade",
-  company: "jedliuai.com", phone: "+86 176 8640 3091", wa: "+86 176 8640 3091", email: "jed@jedliuai.com",
-  slug: "jed", avatar: "assets/jed.jpg", stat: "AI × TRADE", greet: "Hi! Let's talk AI & export", no: "0001",
-  industry: "AI × Trade",
-};
+// Demo cards for the showroom: made-up people (phone numbers use ranges reserved for fiction, emails
+// use the .example domain). Visitors' own cards come from their account (editor.js).
 
 export const PRESETS = {
-  noir: JED,
+  noir: { name: "Victor Hale", sub: "Managing Partner", title: "Corporate Law · M&A", company: "Hale & Whitmore LLP", phone: "+1 212 555 0161", wa: "+1 212 555 0161", email: "victor@halewhitmore.example", slug: "victor", no: "0007" },
   holo: { name: "Luna Lin", sub: "Lifestyle creator · LA", title: "Content · Brand deals · UGC", company: "Fawn Studio", phone: "+1 415 555 0142", wa: "+1 415 555 0142", email: "hello@fawnstudio.example", slug: "luna", stat: "286K followers", no: "0128" },
   terminal: { name: "Tony Chen", sub: "Builder", title: "AI Engineer · LLM Agents", company: "Hyperloop Labs", phone: "+1 650 555 0177", wa: "+1 650 555 0177", email: "tony@hyperloop.example", slug: "tony", no: "0042" },
   swiss: { name: "Zhou Mo", sub: "Architect", title: "Principal Architect", company: "Mojian Studio", phone: "+44 7700 900427", wa: "+44 7700 900427", email: "mo@mojian.example", slug: "zhoumo", industry: "Architecture", no: "0427" },

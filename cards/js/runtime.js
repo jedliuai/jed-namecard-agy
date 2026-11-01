@@ -39,7 +39,8 @@ const I = {
   sound: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke-linejoin="round"/><path class="i-on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="i-off" d="M17 9l5 6M22 9l-5 6"/></svg>`,
 };
 
-export function mountCard(stage, { style, data }) {
+// quiet: no entrance animation or hint (live preview while someone edits their card).
+export function mountCard(stage, { style, data, quiet = false }) {
   let alive = true;
   const S = {
     style, data,
@@ -483,14 +484,14 @@ export function mountCard(stage, { style, data }) {
   const hint = Object.assign(document.createElement("div"), { className: "hint", textContent: isTouch ? "Swipe to flip · turn your phone" : "Drag to flip · hover to tilt" });
   document.body.appendChild(hint);
   function hideHint() { hint.classList.add("gone"); }
-  setTimeout(hideHint, 4500);
+  setTimeout(hideHint, quiet ? 0 : 4500);
 
   S.land = want().land;
   applyRot(want().rot);
   root.classList.toggle("land", S.land);
   lastBox = snapBox();
   const enter = (MORPHS[S.style] && MORPHS[S.style].enter) || MORPHS.default.enter;
-  if (!reduce) {
+  if (!reduce && !quiet) {
     S.busy = true;
     enter(makeCtx(front, S.land)).catch((e) => console.error(e)).then(() => { S.busy = false; lastBox = snapBox(); evaluate(); });
   }
