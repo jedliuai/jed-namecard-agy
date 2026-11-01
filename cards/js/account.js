@@ -132,7 +132,7 @@ async function onPaddle(ev) {
 }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const day = (s) => new Date(s.replace(" ", "T")).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+const day = (s) => new Date(s.replace(" ", "T")).toLocaleDateString(document.documentElement.lang || undefined, { year: "numeric", month: "short", day: "numeric" });
 
 function render() {
   if (!dialog) return;
