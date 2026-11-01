@@ -37,7 +37,9 @@ Type=simple
 User=$SVC
 Group=$SVC
 WorkingDirectory=$PB_DIR
-ExecStart=$PB_DIR/pocketbase serve --http=127.0.0.1:$PORT --dir=$PB_DIR/pb_data --hooksDir=$PB_DIR/pb_hooks --migrationsDir=$PB_DIR/pb_migrations
+# Paddle webhook secret and the like; root-only file, read by systemd before dropping privileges.
+EnvironmentFile=-$BASE/secrets/paddle.env
+ExecStart=$PB_DIR/pocketbase serve --http=127.0.0.1:$PORT --dir=$PB_DIR/pb_data --hooksDir=$PB_DIR/pb_hooks --migrationsDir=$PB_DIR/pb_migrations --automigrate=false
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true
