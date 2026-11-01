@@ -1,0 +1,25 @@
+/* Account panel (account.js): a small dark sheet over the showroom. */
+.picker .acct-btn{margin-left:6px}
+.acct{width:min(360px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:22px 20px 18px;background:rgba(18,18,22,.96);color:#f4f4f6;box-shadow:0 24px 70px rgba(0,0,0,.55);font-family:"Inter Tight",system-ui,sans-serif}
+.acct::backdrop{background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.acct h2{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.01em}
+.acct-sub{margin:0 0 16px;font-size:13.5px;color:rgba(255,255,255,.62);overflow-wrap:anywhere}
+.acct-x{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:rgba(255,255,255,.6);font-size:22px;line-height:1;cursor:pointer}
+.acct-x:hover{background:rgba(255,255,255,.08);color:#fff}
+.acct-form{display:grid;gap:10px}
+.acct input{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:15px;padding:11px 12px;outline:none}
+.acct input:focus{border-color:rgba(255,255,255,.5)}
+.acct-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.acct-go,.acct-alt{width:100%;border-radius:999px;padding:11px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.acct-go{border:0;background:#fff;color:#0b0b0e}
+.acct-alt{border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff}
+.acct-go:hover{background:#e8e8ec}
+.acct button:disabled{opacity:.5;cursor:default}
+.acct-alt:hover{background:rgba(255,255,255,.07)}
+.acct-plan{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:12px 14px;margin-bottom:14px;border-radius:12px;background:rgba(255,255,255,.06);font-size:14px}
+.acct-plan span{color:rgba(255,255,255,.62);font-size:13px;white-space:nowrap}
+.acct-note{margin:6px 4px 14px;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.55)}
+.acct-fine{margin:4px 0 14px;font-size:11.5px;color:rgba(255,255,255,.4)}
+.acct-busy,.acct-err{margin:12px 0 0;font-size:13px}
+.acct-busy{color:rgba(255,255,255,.75)}
+.acct-err{color:#ff8a80}

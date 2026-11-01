@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@500;900&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/account.css">
 <style>
   .picker{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;z-index:20;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 12px;pointer-events:none}
   .picker button{pointer-events:auto;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -35,6 +36,7 @@ import { STYLES, ALIASES } from "./js/templates.js";
 import { PRESETS, JED } from "./js/presets.js";
 import { mountCard } from "./js/runtime.js";
 import { preload } from "./js/sound.js";
+import { mountAccount } from "./js/account.js";
 
 const q = new URLSearchParams(location.search);
 const asked = ALIASES[q.get("style")] || q.get("style");
@@ -67,10 +69,13 @@ picker.innerHTML = STYLES.map((s) => `<button type="button" data-s="${s.id}">${s
 picker.addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (!b) return;
-  if (b.dataset.s) style = b.dataset.s; else me = !me;
+  if (b.dataset.s) style = b.dataset.s;
+  else if (b.classList.contains("me")) me = !me;
+  else return;
   mount();
 });
 mount();
+if (!render) mountAccount(picker);
 // Showroom only: once the visitor starts playing, fetch the other styles' music in the background.
 addEventListener("pointerdown", () => preload(STYLES.map((s) => s.id)), { once: true });
 </script>
