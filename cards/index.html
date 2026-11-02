@@ -4,7 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0b0e">
-<title>Super Namecard · Showroom</title>
+<title>Super Namecard: 3D digital business card with WhatsApp or WeChat QR</title>
+<meta name="description" content="Make a 3D digital business card in a minute. Nine styles, your photo, a WhatsApp or WeChat QR code, a link of your own and video exports for social media. Free to try.">
+<link rel="canonical" href="https://1name.cards/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Super Namecard">
+<meta property="og:title" content="Super Namecard: 3D digital business card with WhatsApp or WeChat QR">
+<meta property="og:description" content="Make a 3D digital business card in a minute. Nine styles, your photo, a WhatsApp or WeChat QR code, a link of your own and video exports for social media. Free to try.">
+<meta property="og:url" content="https://1name.cards/">
+<meta property="og:image" content="https://1name.cards/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://1name.cards/assets/og.jpg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Super Namecard","url":"https://1name.cards/",
+"applicationCategory":"BusinessApplication","operatingSystem":"Any (web browser)",
+"description":"Make a 3D digital business card in a minute. Nine styles, your photo, a WhatsApp or WeChat QR code, a link of your own and video exports for social media. Free to try.",
+"offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"USD"},
+{"@type":"Offer","name":"Pro, yearly","price":"9.90","priceCurrency":"USD"},
+{"@type":"Offer","name":"Share pack","price":"2.99","priceCurrency":"USD"}]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;900&family=VT323&family=Archivo+Black&family=Bungee&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Pinyon+Script&display=swap">
@@ -13,6 +33,7 @@
 <link rel="stylesheet" href="css/styles.css?v=__V__">
 <link rel="stylesheet" href="css/account.css?v=__V__">
 <link rel="stylesheet" href="css/editor.css?v=__V__">
+<link rel="stylesheet" href="css/about.css?v=__V__">
 <!-- Every deploy stamps __V__ with its own number (deploy/sync-backend.sh), so browsers fetch the new
      files at once instead of running copies cached from an earlier deploy. -->
 <script type="importmap">
@@ -51,6 +72,61 @@
 <body>
 <div class="picker" id="picker" role="group" aria-label="Card style"></div>
 <main class="stage" id="stage"></main>
+<section class="about" id="about" aria-labelledby="about-title" aria-hidden="true">
+<div class="about-in">
+  <button type="button" class="about-x" data-about-close aria-label="Close">×</button>
+  <h1 id="about-title">Your business card, in 3D, in your pocket</h1>
+  <p class="lead">Super Namecard makes digital business cards that tilt, flip and turn sideways like a real card. Share a link or a QR code, and people save your contact or message you on WhatsApp or WeChat in one tap. No app to install, for you or for them.</p>
+  <button type="button" class="about-cta" data-about-start>Make my card</button>
+
+  <h2>How it works</h2>
+  <ol class="about-steps">
+    <li>Pick a style and type in your name, title, company, phone and email. The card updates as you type.</li>
+    <li>Add your photo and choose WhatsApp or WeChat. The QR code on the back is made from your number, or upload your own.</li>
+    <li>Share your card link, show the QR code in person, or post a video of your card on social media.</li>
+  </ol>
+
+  <h2>What you get</h2>
+  <ul class="about-feats">
+    <li><h3>A card that moves</h3>Light follows the tilt of your phone. Swipe to flip it, turn your phone to see it in landscape.</li>
+    <li><h3>One-tap contact</h3>Visitors save your contact straight to their phone, or open a chat with you.</li>
+    <li><h3>WhatsApp or WeChat</h3>Each card carries the QR code of the messenger your clients use.</li>
+    <li><h3>Your own link</h3>Your card lives at yourname.1name.cards, with a proper preview when you send it.</li>
+    <li><h3>Video for social</h3>Export an HD video with music, a GIF and still images of your card.</li>
+    <li><h3>Edit any time</h3>Change a phone number or job title and your shared link shows it at once.</li>
+  </ul>
+
+  <h2>Nine styles</h2>
+  <ul class="about-styles">
+    <li><b>Noir</b> · black metal and gold, for law, finance and luxury</li>
+    <li><b>Holo</b> · iridescent foil, for creators and brands</li>
+    <li><b>Terminal</b> · amber screen, for developers and AI</li>
+    <li><b>Swiss</b> · clean grid, for design and architecture</li>
+    <li><b>Pop</b> · comic-book colour, for food, retail and education</li>
+    <li><b>Ink</b> · ink-wash painting, for tea, culture and wellness</li>
+    <li><b>Aurora</b> · northern lights, for beauty, therapy and yoga</li>
+    <li><b>Blueprint</b> · technical drawing, for construction and engineering</li>
+    <li><b>Helix</b> · lab and DNA, for pharma, biotech and health</li>
+  </ul>
+
+  <h2 id="pricing">Pricing</h2>
+  <div class="about-plans">
+    <div class="about-plan"><h3>Free</h3><p class="price">$0</p><ul><li>Design your card in all nine styles</li><li>Your photo and messenger QR code</li><li>Save your card to your account</li></ul></div>
+    <div class="about-plan pro"><h3>Pro</h3><p class="price">$9.90 <small>per year</small></p><ul><li>Your live card link: yourname.1name.cards</li><li>Video, GIF and image exports, up to 20 a day</li><li>Change your card any time</li></ul></div>
+    <div class="about-plan"><h3>Share pack</h3><p class="price">$2.99 <small>once</small></p><ul><li>One HD export of your card in one style</li><li>MP4 video with music, GIF and JPG images</li><li>No subscription</li></ul></div>
+  </div>
+  <p class="about-note">Prices are in US dollars and include sales tax or VAT. Payments are handled by Paddle, our merchant of record. Pro renews yearly and you can cancel at any time.</p>
+
+  <h2>Questions</h2>
+  <details><summary>Do the people I share my card with need an app?</summary><p>No. Your card opens in any phone or computer browser. They can save your contact, call, email or message you from there.</p></details>
+  <details><summary>WhatsApp or WeChat?</summary><p>Each card shows one, so you choose the one your clients use. For WhatsApp the QR code is made from your number. For WeChat, upload the QR code from your WeChat profile.</p></details>
+  <details><summary>Can I use my own photo?</summary><p>Yes. Upload any photo and crop it in the frame. Styles that show a portrait will use it.</p></details>
+  <details><summary>What is in an export?</summary><p>An HD video of your card turning and flipping, with the style's music, plus a GIF and JPG images of the front, back and landscape view. They are made for Instagram, TikTok and WhatsApp Status.</p></details>
+  <details><summary>Who can see my card?</summary><p>Only people you give your link or QR code to. Card pages are kept out of search engines, and you can change your card at any time.</p></details>
+
+  <footer class="about-foot"><span>© 2026 Super Namecard · 1name.cards</span><span>Payments by Paddle</span></footer>
+</div>
+</section>
 <script type="module">
 import { STYLES, ALIASES } from "./js/templates.js";
 import { PRESETS } from "./js/presets.js";
@@ -123,6 +199,33 @@ if (!render) {
   // Signed in, signed out or saved: show the account's card if that is what's on screen.
   document.addEventListener("nc:account", () => { if (me && !isEditing()) mount(true); });
   document.addEventListener("nc:edit", () => { me = true; openEditor(); });
+}
+// About panel: opened from its button or by a link to #about / #pricing.
+if (!render) {
+  const about = document.getElementById("about");
+  const btn = Object.assign(document.createElement("button"), { type: "button", className: "about-btn", textContent: "About" });
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", "about");
+  picker.appendChild(btn);
+  const show = (on, at) => {
+    about.classList.toggle("open", on);
+    about.setAttribute("aria-hidden", String(!on));
+    btn.setAttribute("aria-expanded", String(on));
+    if (on) {
+      const el = at && document.getElementById(at);
+      about.querySelector(".about-in").scrollTop = el ? el.offsetTop - 20 : 0;
+      about.querySelector(".about-x").focus({ preventScroll: true });
+    }
+  };
+  btn.addEventListener("click", () => show(!about.classList.contains("open")));
+  about.addEventListener("click", (e) => {
+    if (e.target === about || e.target.closest("[data-about-close]")) show(false);
+    else if (e.target.closest("[data-about-start]")) { show(false); me = true; openEditor(); }
+  });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && about.classList.contains("open")) show(false); });
+  const fromHash = () => { const h = location.hash.slice(1); if (h === "about" || h === "pricing") show(true, h === "pricing" ? "pricing" : null); };
+  addEventListener("hashchange", fromHash);
+  fromHash();
 }
 // ?debug: frame-rate and freeze overlay for testing on phones.
 if (q.has("debug")) import("./js/debug.js").then((m) => m.mountDebug());
