@@ -1,6 +1,6 @@
 // Card runtime: light that follows tilt (pointer or gyroscope), swipe-to-flip with inertia,
 // portrait ↔ landscape morphs (also with rotation lock on), full-screen mode, music and effects.
-import { renderCard, waLink, cardURL, esc } from "./templates.js";
+import { renderCard, waLink, cardURL, esc, isWeChat } from "./templates.js";
 import { MORPHS } from "./morphs.js";
 import { mountLive } from "./fx.js";
 import { play } from "./util.js";
@@ -32,6 +32,7 @@ const px = (v) => v + "px";
 
 const I = {
   save: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,
+  wechat: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 4C5.1 4 2 6.6 2 9.8c0 1.8 1 3.4 2.6 4.5L4 16.5l2.5-1.3c.8.2 1.6.4 2.5.4h.4a5 5 0 0 1-.2-1.4c0-3.1 3-5.6 6.7-5.6h.4C15.6 6 12.6 4 9 4Zm-2.6 3.3a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8Zm5.2 0a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8ZM16 9.4c-3.3 0-6 2.2-6 4.9s2.7 4.9 6 4.9c.7 0 1.4-.1 2-.3l2 1.1-.5-1.8c1.5-.9 2.5-2.3 2.5-3.9 0-2.7-2.7-4.9-6-4.9Zm-2 2.6a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Zm4 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z"/></svg>`,
   wa: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3Z"/></svg>`,
   share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>`,
   rotate: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="7" y="2" width="10" height="16" rx="2"/><path d="M21 14a8 8 0 0 1-8 8M21 14l-2.5 1M21 14l1 2.5"/></svg>`,
@@ -59,6 +60,7 @@ export function mountCard(stage, { style, data, quiet = false }) {
     <nav class="actions" aria-label="Card actions">
       <button class="act" data-a="save" type="button">${I.save}Save contact</button>
       ${waLink(data) ? `<a class="act" data-a="wa" href="${esc(waLink(data))}" target="_blank" rel="noopener">${I.wa}WhatsApp</a>` : ""}
+      ${isWeChat(data) && (data.qr || data.wechat) ? `<button class="act" data-a="wechat" type="button">${I.wechat}WeChat</button>` : ""}
       <button class="act" data-a="share" type="button">${I.share}Share</button>
       <button class="act icon" data-a="sound" type="button" aria-label="Music on / off">${I.sound}</button>
       <button class="act icon" data-a="rotate" type="button" aria-label="Switch portrait / landscape">${I.rotate}</button>
@@ -456,7 +458,7 @@ export function mountCard(stage, { style, data, quiet = false }) {
     const a = b.dataset.a, d = S.data;
     if (a === "save") {
       const v = ["BEGIN:VCARD", "VERSION:3.0", `N:;${d.name};;;`, `FN:${d.name}`, d.company && `ORG:${d.company}`, d.title && `TITLE:${d.title}`,
-        d.phone && `TEL;TYPE=CELL:${d.phone}`, d.email && `EMAIL:${d.email}`, `URL:${cardURL(d)}`, d.wa && `X-SOCIALPROFILE;TYPE=whatsapp:${waLink(d)}`, "END:VCARD"].filter(Boolean).join("\r\n");
+        d.phone && `TEL;TYPE=CELL:${d.phone}`, d.email && `EMAIL:${d.email}`, `URL:${cardURL(d)}`, waLink(d) && `X-SOCIALPROFILE;TYPE=whatsapp:${waLink(d)}`, isWeChat(d) && d.wechat && `NOTE:WeChat: ${d.wechat}`, "END:VCARD"].filter(Boolean).join("\r\n");
       const url = URL.createObjectURL(new Blob([v], { type: "text/vcard" }));
       const link = Object.assign(document.createElement("a"), { href: url, download: `${(d.name || "contact").replace(/\s+/g, "_")}.vcf` });
       document.body.appendChild(link); link.click(); link.remove();
@@ -468,6 +470,11 @@ export function mountCard(stage, { style, data, quiet = false }) {
         if (navigator.share) await navigator.share({ title: d.name, text: `${d.name} · ${d.title}`, url });
         else { await navigator.clipboard.writeText(url); say("Link copied"); }
       } catch {}
+    } else if (a === "wechat") {
+      // WeChat has no link to open a chat: copy the ID and turn the card to its QR code.
+      if (d.wechat) { try { await navigator.clipboard.writeText(d.wechat); } catch {} }
+      if (d.qr && Math.cos((S.flip * Math.PI) / 180) > 0) { S.flipTarget = Math.round(S.flip / 180) * 180 + 180; S.flipV = 0; }
+      say(d.wechat ? `WeChat ID copied${d.qr ? " · scan the QR" : ""}` : "Scan the QR in WeChat");
     } else if (a === "rotate") {
       S.manual = !S.land;
       S.gyroSide = 0;

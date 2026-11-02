@@ -87,18 +87,22 @@ export const openAccount = () => open();
 export function cardData(rec) {
   if (!rec) return null;
   const d = {};
-  for (const k of ["name", "sub", "title", "company", "phone", "wa", "email", "slug", "stat", "greet", "industry", "no"]) if (rec[k]) d[k] = rec[k];
-  if (!d.wa && d.phone) d.wa = d.phone;   // most people use one number for both
-  if (rec.avatar) d.avatar = `${API}/api/files/${rec.collectionId}/${rec.id}/${encodeURIComponent(rec.avatar)}`;
+  for (const k of ["name", "sub", "title", "company", "phone", "wa", "email", "slug", "stat", "greet", "industry", "no", "im", "wechat"]) if (rec[k]) d[k] = rec[k];
+  if (!d.wa && d.phone && d.im !== "wechat") d.wa = d.phone;   // most people use one number for both
+  const file = (name) => `${API}/api/files/${rec.collectionId}/${rec.id}/${encodeURIComponent(name)}`;
+  if (rec.avatar) d.avatar = file(rec.avatar);
+  if (rec.qr) d.qr = file(rec.qr);
   return d;
 }
 
-// fields: the card's text fields. photo: a Blob to upload, false to remove it, undefined to keep it.
-export async function saveCard(fields, photo) {
+// fields: the card's text fields. photo, qr: a Blob to upload, false to remove it, undefined to keep it.
+export async function saveCard(fields, photo, qr) {
   const body = new FormData();
   for (const [k, v] of Object.entries(fields)) body.append(k, v ?? "");
-  if (photo) body.append("avatar", photo, "photo.jpg");
-  else if (photo === false) body.append("avatar", "");
+  for (const [name, blob] of [["avatar", photo], ["qr", qr]]) {
+    if (blob) body.append(name, blob, name + ".jpg");
+    else if (blob === false) body.append(name, "");
+  }
   if (card) card = await pb(`/api/collections/cards/records/${card.id}`, { method: "PATCH", body });
   else {
     body.append("user", auth.user.id);

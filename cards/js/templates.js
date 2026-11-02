@@ -28,6 +28,14 @@ export function initials(n) {
 }
 
 const host = (d) => `${esc(d.slug || "you")}.${DOMAIN}`;
+// Messenger: WhatsApp (QR made from the number, or the owner's own picture) or WeChat (the owner's
+// own QR picture; WeChat has no link to build one from). Without either, the QR opens the card link.
+export const isWeChat = (d) => d.im === "wechat";
+const imName = (d) => (isWeChat(d) ? "WeChat" : "WhatsApp");
+const imTag = (d) => (isWeChat(d) ? "WeChat" : "WA");
+const imId = (d) => (isWeChat(d) ? d.wechat || "" : d.wa || d.phone || "");
+const imLine = (d, tag = imTag(d)) => (imId(d) ? `${tag} ${esc(imId(d))}` : "");
+const scanTo = (d) => (d.qr || (!isWeChat(d) && waLink(d)) ? imName(d) : "My card");
 const avatar = (d) => (d.avatar ? `<img src="${esc(d.avatar)}" alt="">` : esc(initials(d.name)));
 const words = (s) => String(s || "").trim().split(/\s+/).filter(Boolean);
 const parts = (s) => String(s || "").split(/\s*[·|]\s*/).filter(Boolean);
@@ -46,9 +54,18 @@ function seal(name) {
   }
   return { txt: initials(n), one: true };
 }
+// Ink sets Chinese names in vertical columns. Latin letters turned sideways read wrong, so a Latin
+// name is set upright, one word per line, sized to its longest word; the title follows below it.
+const latVars = (d) => {
+  const w = words(d.name);
+  return `--nl:${Math.min(3, w.length) || 1};--L:${Math.max(4, ...w.map((x) => x.length))}`;
+};
+const inkName = (d, p) => isCJK(d.name)
+  ? `<div class="${p}-name" style="--n:${[...String(d.name || "")].length || 1}" data-m>${esc(d.name)}</div>`
+  : `<div class="${p}-name lat" style="${latVars(d)}" data-m>${words(d.name).slice(0, 3).map(esc).join("<br>")}${words(d.name).length > 3 ? " " + words(d.name).slice(3).map(esc).join(" ") : ""}</div>`;
 const sealHTML = (d, cls = "") => {
   const s = seal(d.name);
-  return `<div class="i-seal${s.one ? " one" : ""} ${cls}" data-m>${[...s.txt].map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
+  return `<div class="i-seal${s.one ? " one" : ""} ${cls}"${isCJK(d.name) ? "" : ` style="${latVars(d)}"`} data-m>${[...s.txt].map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
 };
 
 const NFC_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 7c2.5 3 2.5 7 0 10M12 5c3.5 4 3.5 10 0 14M16 3c4.5 5 4.5 13 0 18"/></svg>`;
@@ -99,11 +116,12 @@ const FRONT = {
     <div class="fx n-frame"></div><div class="fx n-wave">${WAVE}</div><div class="fx n-glint"></div>
     <span class="n-mono" data-m>${esc(initials(d.name).split("").join(" "))}</span>
     <span class="n-nfc" data-m>${NFC_ICON}</span>
-    <i class="n-chip" data-m></i>
+    ${d.avatar ? `<div class="n-av" data-m><img src="${esc(d.avatar)}" alt=""></div>` : ""}
     <span class="n-since" data-m>MEMBER N° ${esc(d.no || "0001")} · EST. 2026</span>
     <div class="n-name foil" data-m data-t="${esc(d.name)}">${esc(d.name)}</div>
     <div class="n-sub" data-m>${esc(d.sub)}</div>
     <i class="n-rule" data-m></i>
+    ${d.company ? `<div class="n-co" data-m>${esc(d.company)}</div>` : ""}
     <div class="n-title" data-m>${esc(d.title)}</div>
     <div class="n-rows" data-m><span>${esc(d.phone)}</span><span>${esc(d.email)}</span></div>`,
 
@@ -113,8 +131,9 @@ const FRONT = {
     <span class="h-badge" data-m>${esc(d.stat || "No. " + (d.no || "0001"))}</span>
     <div class="h-name" data-m>${words(d.name).map(esc).join("<br>")}</div>
     <div class="h-sub" data-m>${esc(d.sub)}</div>
+    ${d.company ? `<div class="h-co" data-m>${esc(d.company)}</div>` : ""}
     <div class="h-tags">${parts(d.title).map((t) => `<span class="h-tag" data-m>${esc(t)}</span>`).join("")}</div>
-    <div class="h-foot" data-m><span>${host(d)}</span><span>WA ${esc(d.wa)}</span></div>`,
+    <div class="h-foot" data-m><span>${host(d)}</span><span>${imLine(d)}</span></div>`,
 
   terminal: (d) => {
     const name = String(d.name || "");
@@ -126,7 +145,7 @@ const FRONT = {
     <p class="t-cmd c2" data-m>$ cat role.txt</p>
     <p class="t-out t-role" data-m>${esc(d.title)}<br>@ ${esc(d.company)}</p>
     <p class="t-cmd c3" data-m>$ ls ./contact</p>
-    <p class="t-out t-ls" data-m><span>whatsapp/</span><span>phone/</span><span>email/</span></p>
+    <p class="t-out t-ls" data-m><span>${imName(d).toLowerCase()}/</span><span>phone/</span><span>email/</span></p>
     <p class="t-out t-dim" data-m>${esc(d.phone)}<br>${esc(d.email)}</p>
     <p class="t-prompt" data-m>$ <i class="t-cur"></i></p>`;
   },
@@ -147,7 +166,7 @@ const FRONT = {
     <div class="w-c w-c1" data-m><b>Role</b>${esc(d.title)}</div>
     <div class="w-c w-c2" data-m><b>Company</b>${esc(d.company)}</div>
     <div class="w-c w-c3" data-m><b>Phone</b>${esc(d.phone)}</div>
-    <div class="w-c w-c4" data-m><b>WhatsApp</b>${esc(d.wa)}</div>`;
+    <div class="w-c w-c4" data-m>${imId(d) ? `<b>${imName(d)}</b>${esc(imId(d))}` : `<b>Email</b>${esc(d.email)}`}</div>`;
   },
 
   pop: (d) => `
@@ -163,10 +182,10 @@ const FRONT = {
     <div class="fx i-paper"></div><div class="fx i-sun"></div><div class="fx i-mtn"></div><div class="fx i-mist"></div>
     <div class="fx i-crane c1"><div class="cr-bob">${CRANE}</div></div><div class="fx i-crane c2"><div class="cr-bob">${CRANE}</div></div>
     <div class="fx i-mist m2"></div><div class="fx i-qi"><i></i><i></i><i></i><i></i><i></i></div><div class="fx i-ripple"></div>
-    <div class="i-name${isCJK(d.name) ? "" : " lat"}" style="--n:${[...String(d.name || "")].length || 1}" data-m>${esc(d.name)}</div>
-    <div class="i-title" data-m>${esc(d.title)}</div>
+    ${inkName(d, "i")}
+    <div class="i-title${isCJK(d.title) ? "" : " lat"}" style="${latVars(d)}" data-m>${esc(d.title)}</div>
     ${sealHTML(d)}
-    <div class="i-foot" data-m>${esc(d.company)}<br>WhatsApp ${esc(d.wa)}</div>`,
+    <div class="i-foot" data-m>${esc(d.company)}<br>${imLine(d, isWeChat(d) ? "微信" : "WhatsApp")}</div>`,
 
   aurora: (d) => `
     <div class="fx a-blob b1"></div><div class="fx a-blob b2"></div><div class="fx a-blob b3"></div>
@@ -177,7 +196,7 @@ const FRONT = {
       <div class="a-name">${esc(d.name)}</div>
       <div class="a-sub">${esc(d.sub)}</div>
       <div class="a-title">${esc(d.title)} · ${esc(d.company)}</div>
-      <div class="a-rows"><span>${esc(d.phone)}</span><span>WA ${esc(d.wa)}</span></div>
+      <div class="a-rows"><span>${esc(d.phone)}</span><span>${imLine(d)}</span></div>
     </div>`,
 
   blueprint: (d) => `
@@ -227,19 +246,19 @@ const BACK = {
     <div class="fx n-guil">${GUIL}</div><div class="fx n-frame"></div>
     <span class="n-top" data-m>${esc(initials(d.name).split("").join(" "))} <em>NOIR</em></span>
     <div class="b-qr n-qr" data-m>${q}<i class="tl"></i><i class="br"></i></div>
-    <div class="n-cap" data-m>Scan · WhatsApp</div>
+    <div class="n-cap" data-m>Scan · ${scanTo(d)}</div>
     <div class="n-sig" data-m><small>Authorized signature</small><span>${esc(d.name)}</span></div>
     <div class="n-list" data-m><span>${esc(d.phone)}</span><span>${esc(d.email)}</span><span>${host(d)}</span></div>
-    <p class="n-fine" data-m>This card remains the property of its holder. If found, please return via WhatsApp.</p>`,
+    <p class="n-fine" data-m>This card remains the property of its holder. If found, please return via ${imName(d)}.</p>`,
 
   holo: (d, q) => `
     <div class="fx h-foil"></div><div class="fx h-lines"></div>
     <div class="fx h-marq">${[0, 1, 2, 3, 4, 5].map((i) => `<span class="${i % 2 ? "r" : ""}">${(esc(words(d.name)[0] || d.name) + " ✦ ").repeat(6)}</span>`).join("")}</div>
     <div class="h-qr" data-m><div class="b-qr">${q}</div></div>
-    <span class="h-scan" data-m>SCAN ME ↗</span>
+    <span class="h-scan" data-m>SCAN ME</span>
     <div class="h-bname" data-m>${esc(d.name)}</div>
     <div class="h-chips">
-      <span class="h-chip" data-m>WA ${esc(d.wa || d.phone)}</span>
+      ${imId(d) ? `<span class="h-chip" data-m>${imLine(d)}</span>` : ""}
       ${d.email ? `<span class="h-chip" data-m>${esc(d.email)}</span>` : ""}
       <span class="h-chip" data-m>${host(d)}</span>
     </div>`,
@@ -247,7 +266,7 @@ const BACK = {
   terminal: (d, q, wa) => `
     <div class="fx t-scan"></div>
     <div class="t-bar tb" data-m>tty2 — qrencode</div>
-    <p class="t-cmd tq" data-m>$ qrencode -t UTF8 ${esc((wa || "").replace("https://", ""))}</p>
+    <p class="t-cmd tq" data-m>${d.qr ? `$ display ./${imName(d).toLowerCase()}-qr.png` : `$ qrencode -t UTF8 ${esc((wa || cardURL(d)).replace("https://", ""))}`}</p>
     <div class="b-qr t-qr" data-m>${q}</div>
     <p class="t-cmd tv" data-m>$ cat contact.vcf</p>
     <pre class="t-vcf" data-m>BEGIN:VCARD
@@ -262,7 +281,7 @@ END:VCARD</pre>
     <div class="fx w-gridlines on"></div>
     <div class="w-disc" data-m><i class="w-blob"></i></div>
     <span class="w-no" data-m>02 / Contact</span>
-    <span class="w-ind" data-m>Scan → WhatsApp</span>
+    <span class="w-ind w-scan" data-m>Scan · ${scanTo(d)}</span>
     <div class="b-qr w-qr" data-m>${q}</div>
     <i class="w-rule" data-m></i>
     <div class="w-c w-c1" data-m><b>Phone</b>${esc(d.phone)}</div>
@@ -281,8 +300,8 @@ END:VCARD</pre>
     <div class="fx i-paper"></div><div class="fx i-moon"></div><div class="fx i-far"></div><div class="fx i-mist"></div>
     <div class="fx i-crane c3"><div class="cr-bob">${CRANE}</div></div>
     <div class="ib-qr" data-m><div class="b-qr">${q}</div></div>
-    <div class="ib-cap" data-m>扫码 · WhatsApp</div>
-    <div class="ib-name${isCJK(d.name) ? "" : " lat"}" data-m>${esc(d.name)}</div>
+    <div class="ib-cap" data-m>扫码 · ${scanTo(d) === "WeChat" ? "微信" : scanTo(d) === "My card" ? "名片" : "WhatsApp"}</div>
+    ${inkName(d, "ib")}
     <div class="ib-lines" data-m><span>${esc(d.company)}</span><span>${esc(d.phone)}</span><span>${esc(d.email)}</span></div>
     ${sealHTML(d, "small")}`,
 
@@ -291,7 +310,7 @@ END:VCARD</pre>
     <div class="fx a-curtain"><i></i><i></i><i></i></div><div class="fx a-grain"></div>
     <div class="ab-orb" data-m>
       <svg class="ab-ring" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="ab-c" d="M50 50m-44 0a44 44 0 1 1 88 0a44 44 0 1 1-88 0"/></defs>
-      <text font-size="6" fill="currentColor" textLength="272" lengthAdjust="spacing"><textPath href="#ab-c" textLength="272" lengthAdjust="spacing">SCAN TO SAY HELLO · WHATSAPP · SCAN TO SAY HELLO · WHATSAPP · </textPath></text></svg>
+      <text font-size="6" fill="currentColor" textLength="272" lengthAdjust="spacing"><textPath href="#ab-c" textLength="272" lengthAdjust="spacing">${`SCAN TO SAY HELLO · ${scanTo(d).toUpperCase()} · `.repeat(2)}</textPath></text></svg>
       <div class="b-qr">${q}</div>
     </div>
     <div class="ab-name" data-m>${esc(d.name)}</div>
@@ -304,7 +323,7 @@ END:VCARD</pre>
       <div class="b-qr">${q}</div>
       <span class="bb-call">A</span>
     </div>
-    <div class="bb-lbl" data-m>DETAIL A — SCAN · WHATSAPP</div>
+    <div class="bb-lbl" data-m>DETAIL A — SCAN · ${scanTo(d).toUpperCase()}</div>
     <ol class="bb-notes" data-m>
       <li>TEL ${esc(d.phone)}</li>
       <li>MAIL ${esc(d.email)}</li>
@@ -325,13 +344,14 @@ END:VCARD</pre>
       <div class="xf-row xf-big"><b>Active ingredient</b><span>${esc(d.name)}</span></div>
       <div class="xf-row"><b>Purpose</b><span>${esc(d.title)}</span></div>
       <div class="xf-row"><b>Uses</b><span>${esc(d.sub || d.company)}</span></div>
-      <div class="xf-row"><b>Directions</b><span>Scan the code to chat on WhatsApp. Repeat as needed.</span></div>
+      <div class="xf-row"><b>Directions</b><span>${scanTo(d) === "My card" ? "Scan the code to open my card." : `Scan the code to chat on ${scanTo(d)}.`} Repeat as needed.</span></div>
       <div class="xf-row xf-mono"><b>Contact</b><span>${esc(d.phone)}<br>${esc(d.email)}<br>${host(d)}</span></div>
       <p class="xf-warn">Keep within reach of your network.</p>
     </div>`,
 };
 
 export function waLink(d) {
+  if (isWeChat(d)) return "";
   const digits = String(d.wa || d.phone || "").replace(/[^\d]/g, "");
   return digits ? `https://wa.me/${digits}` : "";
 }
@@ -356,7 +376,8 @@ function layered(html) {
 export function renderCard(style, d, { qr = () => "" } = {}) {
   style = ALIASES[style] || style;
   const front = (FRONT[style] || FRONT.noir)(d);
-  const wa = waLink(d);
-  const back = (BACK[style] || BACK.noir)(d, qr(wa || cardURL(d)), wa);
+  const wa = isWeChat(d) ? "" : waLink(d);
+  const code = d.qr ? `<img class="qr-img" src="${esc(d.qr)}" alt="${imName(d)} QR code">` : qr(wa || cardURL(d));
+  const back = (BACK[style] || BACK.noir)(d, code, wa);
   return `<div class="face front c-${style}">${layered(front)}</div><div class="face back c-${style}">${layered(back)}</div>`;
 }

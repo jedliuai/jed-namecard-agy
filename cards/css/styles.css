@@ -10,11 +10,12 @@
 .n-glint{inset:-10% -80%!important;background:linear-gradient(112deg,transparent 44%,rgba(255,236,196,.07) 48%,rgba(255,240,210,.2) 50%,rgba(255,236,196,.07) 52%,transparent 56%);mix-blend-mode:screen;animation:glint 9s cubic-bezier(.5,0,.3,1) infinite;z-index:20}
 @keyframes glint{0%,62%{transform:translateX(-38%)}100%{transform:translateX(38%)}}
 .foil{background:linear-gradient(100deg,#7d5f2a 0%,#e8cf8c calc(var(--px) - 22%),#fff7dc var(--px),#caa356 calc(var(--px) + 22%),#6f5222 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.c-noir.front .lay{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto auto auto auto auto;grid-template-areas:"mono . nfc" "chip . since" ". . since" "name name name" "sub sub sub" "rule rule rule" "title title title" "rows rows rows";padding:10cqmin;column-gap:3cqmin}
+.c-noir.front .lay{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto auto auto auto auto auto;grid-template-areas:"mono . nfc" "av . since" ". . since" "name name name" "sub sub sub" "rule rule rule" "co co co" "title title title" "rows rows rows";padding:10cqmin;column-gap:3cqmin}
 .n-mono{grid-area:mono;font-family:"Cormorant Garamond",serif;font-size:6.8cqmin;letter-spacing:.2em;color:#d8bd7e;white-space:nowrap}
 .n-nfc{grid-area:nfc;width:7.5cqmin;height:7.5cqmin;color:#d8bd7e;opacity:.8}
 .n-nfc svg{width:100%;height:100%;display:block}
-.n-chip{grid-area:chip;display:block;width:15cqmin;height:11.5cqmin;margin-top:9cqmin;border-radius:2cqmin;background:linear-gradient(90deg,transparent 31%,rgba(90,64,22,.5) 31% 33%,transparent 33% 67%,rgba(90,64,22,.5) 67% 69%,transparent 69%),linear-gradient(transparent 32%,rgba(90,64,22,.5) 32% 35%,transparent 35% 65%,rgba(90,64,22,.5) 65% 68%,transparent 68%),linear-gradient(135deg,#f6e3ae,#b08b4f 52%,#ead39a);box-shadow:inset 0 0 0 .4cqmin rgba(70,50,15,.35),0 .6cqmin 1.4cqmin rgba(0,0,0,.6)}
+.n-av{grid-area:av;width:17cqmin;height:17cqmin;margin-top:8cqmin;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5cqmin #0b0b0b,0 0 0 .9cqmin rgba(226,200,145,.7),0 1.4cqmin 3cqmin rgba(0,0,0,.6)}
+.n-av img{width:100%;height:100%;object-fit:cover;display:block;filter:sepia(.18) contrast(1.04)}
 .n-wave{top:20%!important;bottom:auto!important;height:44%;opacity:.2;-webkit-mask:linear-gradient(90deg,transparent,#000 25%,#000 75%,transparent);mask:linear-gradient(90deg,transparent,#000 25%,#000 75%,transparent)}
 .n-wave svg{width:200%;height:100%;display:block;animation:wave 30s linear infinite}
 @keyframes wave{to{transform:translateX(-50%)}}
@@ -25,13 +26,14 @@
 @keyframes engrave{from{background-position:160% 0}to{background-position:-60% 0}}
 .n-sub{grid-area:sub;font-family:"Cormorant Garamond",serif;font-style:italic;font-size:5.2cqmin;color:#bfa36a;margin-top:1.4cqmin}
 .n-rule{grid-area:rule;display:block;height:1px;background:linear-gradient(90deg,rgba(226,200,145,.6),transparent);margin:4cqmin 0 3.2cqmin}
+.n-co{grid-area:co;font-family:"Cormorant Garamond","Noto Serif SC",serif;font-weight:600;font-size:4.4cqmin;letter-spacing:.2em;text-transform:uppercase;color:#e2c98d;line-height:1.3;margin-bottom:1.2cqmin}
 .n-title{grid-area:title;font-size:3.9cqmin;letter-spacing:.14em;color:#d9c9a3;line-height:1.4}
 .n-rows{grid-area:rows;display:grid;gap:.8cqmin;margin-top:2.6cqmin;font-family:"JetBrains Mono",monospace;font-size:3.4cqmin;color:rgba(217,201,163,.62);white-space:nowrap}
-.land .c-noir.front .lay{grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto auto auto auto;grid-template-areas:"mono . nfc" "chip . since" ". . since" "name name since" "sub sub since" "rule rule rule" "title title rows";padding:9cqmin 10cqmin;column-gap:4cqmin}
-.land .n-chip{margin-top:7cqmin}
+.land .c-noir.front .lay{grid-template-columns:auto 1fr auto auto;grid-template-rows:auto auto 1fr auto auto auto auto auto;grid-template-areas:"mono . since nfc" "av . . ." ". . . ." "name name name name" "sub sub sub sub" "rule rule rule rule" "co co rows rows" "title title rows rows";padding:9cqmin 10cqmin;column-gap:4cqmin}
+.land .n-av{width:15cqmin;height:15cqmin;margin-top:5cqmin}
 .land .n-wave{top:12%!important;height:52%}
 .land .n-name{font-size:16cqmin}
-.land .n-since{margin-top:7cqmin}
+.land .n-since{writing-mode:horizontal-tb;margin-top:0;align-self:center}
 .land .n-rows{justify-items:end;align-self:end;margin-top:0}
 .land .n-title{align-self:end}
 /* back: magnetic stripe, signature panel */
@@ -63,16 +65,17 @@
 .h-foil{background:linear-gradient(125deg,#ff86de 0%,#86f3ff 16%,#fff38a 32%,#a98bff 48%,#8affc8 64%,#ffab86 80%,#ff86de 100%);background-size:320% 320%;background-position:var(--px) var(--py);opacity:.62}
 .h-lines{background:repeating-linear-gradient(115deg,rgba(255,255,255,.5) 0 .45cqmin,transparent .45cqmin 1.6cqmin);mix-blend-mode:soft-light}
 .h-band{inset:-20% -60%!important;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.0) 40%,rgba(255,120,220,.55) 45%,rgba(120,240,255,.6) 50%,rgba(255,250,140,.55) 55%,transparent 62%);mix-blend-mode:color-dodge;opacity:0;transform:translateX(-70%)}
-.c-holo.front .lay{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto auto auto auto;grid-template-areas:"av badge" ". ." "name name" "sub sub" "tags tags" "foot foot";padding:8cqmin;align-items:start}
+.c-holo.front .lay{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr auto auto auto auto auto;grid-template-areas:"av badge" ". ." "name name" "sub sub" "co co" "tags tags" "foot foot";padding:8cqmin;align-items:start}
 .h-av{grid-area:av;width:26cqmin;height:26cqmin;border-radius:7.5cqmin;overflow:hidden;background:#0d0c10;color:#fff;display:grid;place-items:center;font-family:Unbounded,sans-serif;font-weight:900;font-size:9cqmin;box-shadow:0 0 0 1cqmin rgba(255,255,255,.7)}
 .h-av img{width:100%;height:100%;object-fit:cover}
 .h-badge{grid-area:badge;font-family:Unbounded,"Noto Sans SC",sans-serif;font-weight:500;font-size:3.4cqmin;padding:1.7cqmin 3.2cqmin;border-radius:99cqmin;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.12);white-space:nowrap}
 .h-name{grid-area:name;font-family:Unbounded,"Noto Sans SC",sans-serif;font-weight:900;font-size:18cqmin;line-height:.92;letter-spacing:-.03em;text-transform:uppercase;word-break:break-word}
 .h-sub{grid-area:sub;font-weight:700;font-size:5.4cqmin;margin-top:3cqmin}
+.h-co{grid-area:co;justify-self:start;font-family:Unbounded,"Noto Sans SC",sans-serif;font-weight:500;font-size:3.6cqmin;letter-spacing:.08em;text-transform:uppercase;margin-top:2cqmin;padding-bottom:1cqmin;background:linear-gradient(90deg,#ff86de,#86f3ff,#a98bff) 0 100%/100% .7cqmin no-repeat}
 .h-tags{grid-area:tags;display:flex;flex-wrap:wrap;gap:1.8cqmin;margin-top:3.6cqmin}
 .h-tag{font-size:3.6cqmin;padding:1.2cqmin 3cqmin;border-radius:99cqmin;border:1px solid rgba(0,0,0,.55);white-space:nowrap}
 .h-foot{grid-area:foot;font-family:"JetBrains Mono",monospace;font-size:3.3cqmin;margin-top:5cqmin;display:flex;justify-content:space-between;gap:3cqmin;opacity:.75;white-space:nowrap}
-.land .c-holo.front .lay{grid-template-columns:auto 1fr auto;grid-template-rows:1fr auto auto auto auto;grid-template-areas:"av . badge" "av name name" "av sub sub" "av tags tags" "foot foot foot";column-gap:7cqmin;padding:8cqmin 9cqmin}
+.land .c-holo.front .lay{grid-template-columns:auto 1fr auto;grid-template-rows:1fr auto auto auto auto auto;grid-template-areas:"av . badge" "av name name" "av sub sub" "av co co" "av tags tags" "foot foot foot";column-gap:7cqmin;padding:8cqmin 9cqmin}
 .land .h-av{width:44cqmin;height:44cqmin;border-radius:10cqmin;align-self:center}
 .land .h-name{font-size:19cqmin}
 /* back: marquee of the name, QR sticker with a foil rim */
@@ -84,6 +87,8 @@
 .h-qr{grid-area:qr;width:66cqmin;padding:2.6cqmin;border-radius:7cqmin;background:linear-gradient(135deg,#ff86de,#86f3ff 30%,#fff38a 55%,#a98bff 80%,#8affc8);background-size:200% 200%;background-position:var(--px) var(--py);box-shadow:0 2cqmin 6cqmin -2cqmin rgba(60,40,90,.5)}
 .h-qr .b-qr{border-radius:4.6cqmin;padding:2.4cqmin}
 .h-scan{grid-area:scan;justify-self:end;margin:-6cqmin 2cqmin 0 0;z-index:2;rotate:-8deg;font-family:Unbounded,sans-serif;font-weight:900;font-size:3.6cqmin;background:#0d0c10;color:#fff;padding:1.8cqmin 3.4cqmin;border-radius:99cqmin;white-space:nowrap}
+.h-scan::before{content:"↖ "}
+.land .h-scan::before{content:"← "}
 .h-bname{grid-area:name;font-family:Unbounded,"Noto Sans SC",sans-serif;font-weight:900;font-size:9.5cqmin;line-height:1;letter-spacing:-.02em;text-transform:uppercase;margin-top:3cqmin}
 .h-chips{grid-area:chips;display:flex;flex-wrap:wrap;justify-content:center;gap:1.6cqmin;margin-top:4cqmin}
 .h-chip{font-family:"JetBrains Mono",monospace;font-size:3.1cqmin;padding:1.2cqmin 2.6cqmin;border-radius:99cqmin;background:rgba(255,255,255,.72);border:1px solid rgba(0,0,0,.1);white-space:nowrap}
@@ -160,8 +165,13 @@
   62%{border-radius:44% 56% 45% 55%/56% 45% 55% 44%;transform:translate(2.5%,-2%) rotate(115deg) scale(.97)}
   100%{border-radius:53% 47% 58% 42%/45% 53% 47% 55%;transform:translate(-1.5%,3%) rotate(170deg) scale(1.03)}}
 .w-qr{grid-area:qr;width:56cqmin;margin-top:9cqmin;padding:1.6cqmin;box-shadow:0 0 0 .5cqmin #111}
-.land .c-swiss.back .lay{grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr auto auto;grid-template-areas:"qr no ind" "qr . ." "qr rule rule" "qr c1 c2";column-gap:6cqmin;padding:7.5cqmin 8cqmin}
+.land .c-swiss.back .lay{grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr auto 1fr auto auto;grid-template-areas:"qr no no" "qr . ." "qr ind ind" "qr . ." "qr rule rule" "qr c1 c2";column-gap:6cqmin;padding:7.5cqmin 8cqmin}
 .land .w-qr{width:62cqmin;margin:0;align-self:center}
+/* The scan label points at the code: down to it in portrait, back to it in landscape. */
+.w-scan::after{content:" ↓"}
+.land .w-scan{justify-self:start;align-self:center;margin:0;font-size:4.6cqmin;font-weight:800;letter-spacing:.02em}
+.land .w-scan::after{content:none}
+.land .w-scan::before{content:"← "}
 .land .w-disc{width:90cqmin;height:90cqmin;top:-48cqmin;right:-20cqmin}
 
 /* ============ 5 POP — comic sticker ============ */
@@ -239,14 +249,22 @@
 @keyframes qi{0%{transform:translate(0,0) scale(.8);opacity:0}25%{opacity:.85}100%{transform:translate(14cqmin,-75cqh) scale(1.7);opacity:0}}
 .face > .i-ripple{inset:auto;width:30cqmin;height:30cqmin;border-radius:50%;border:.5cqmin solid rgba(28,27,24,.5);opacity:0;z-index:12}
 .i-name{position:absolute!important;right:9cqmin;top:9cqmin;writing-mode:vertical-rl;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:min(24cqmin,68cqmin / var(--n,3));line-height:1;letter-spacing:.06em;white-space:nowrap}
-.i-name.lat{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:min(18cqmin,150cqmin / var(--n,8))}
+/* Latin names stand upright: one word per line, right-aligned, the title set below them. */
+.i-name.lat,.ib-name.lat{writing-mode:horizontal-tb;text-align:right;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;--fs:min(14cqmin,96cqmin / var(--L,6));font-size:var(--fs);line-height:1.02;letter-spacing:0}
+.i-title.lat{writing-mode:horizontal-tb;right:9cqmin;top:calc(11cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)));max-width:62cqmin;text-align:right;white-space:normal;font-family:"Cormorant Garamond",serif;font-size:4.4cqmin;letter-spacing:.16em;line-height:1.5}
 .i-title{position:absolute!important;right:36cqmin;top:11cqmin;writing-mode:vertical-rl;font-family:"Noto Serif SC",serif;font-size:4.2cqmin;letter-spacing:.42em;color:#3d3a33;white-space:nowrap}
 .i-seal{position:absolute!important;right:10cqmin;top:86cqmin;width:15.6cqmin;height:15.6cqmin;background:#b42a20;color:#f6e7d8;display:grid!important;grid-template-columns:1fr 1fr;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900;font-size:5.8cqmin;line-height:1;padding:1cqmin;writing-mode:vertical-rl;border-radius:.8cqmin;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><filter id='r'><feTurbulence baseFrequency='.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.9'/></filter><rect width='60' height='60' filter='url(%23r)'/></svg>") 0 0/100% 100%;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><filter id='r'><feTurbulence baseFrequency='.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.9'/></filter><rect width='60' height='60' filter='url(%23r)'/></svg>") 0 0/100% 100%}
 .i-seal.one{grid-template-columns:1fr;font-size:6.4cqmin}
+.i-seal{text-orientation:upright}
+/* Latin initials (only Latin seals carry a style attribute) read left to right. */
+.i-seal[style]{writing-mode:horizontal-tb;display:flex!important;justify-content:center;align-items:center;gap:.8cqmin}
+.i-title.lat + .i-seal{top:calc(13cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)) + 12cqmin)}
+.land .i-title.lat + .i-seal{top:auto}
 .i-foot{position:absolute!important;left:9cqmin;bottom:8cqmin;font-family:"Noto Serif SC",serif;font-size:3.6cqmin;line-height:1.7;color:#f3eee2;letter-spacing:.06em;text-shadow:0 0 1.2cqmin rgba(20,19,17,.95),0 0 3cqmin rgba(20,19,17,.7);white-space:nowrap}
 .land .face > .i-sun{top:14cqmin;left:58cqmin}
 .land .i-name{right:12cqmin;top:9cqmin}
 .land .i-title{right:40cqmin;top:10cqmin}
+.land .i-title.lat{right:12cqmin;top:calc(11cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)));max-width:70cqmin}
 .land .i-seal{right:41cqmin;top:auto;bottom:10cqmin}
 .land .i-foot{left:10cqmin;bottom:9cqmin}
 /* back: moonlit far hills, vertical lines of text */
@@ -255,8 +273,9 @@
 .ib-qr{position:absolute!important;left:9cqmin;top:11cqmin;width:48cqmin;padding:2cqmin;border:.45cqmin solid #b42a20;background:#f3eee2}
 .ib-cap{position:absolute!important;left:9cqmin;top:63cqmin;font-family:"Noto Serif SC",serif;font-size:3.4cqmin;letter-spacing:.3em;color:#b42a20;white-space:nowrap}
 .ib-name{position:absolute!important;right:9cqmin;top:9cqmin;writing-mode:vertical-rl;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:15cqmin;line-height:1;letter-spacing:.08em;white-space:nowrap}
-.ib-name.lat{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:12cqmin}
-.ib-lines{position:absolute!important;right:27cqmin;top:76cqmin;writing-mode:vertical-rl;font-family:"Noto Serif SC",serif;font-size:3.3cqmin;line-height:1.9;letter-spacing:.12em;color:#3d3a33;white-space:nowrap}
+.ib-name.lat{--fs:min(11cqmin,80cqmin / var(--L,6))}
+/* Phone and email are Latin, so the contact lines run across, not down. */
+.ib-lines{position:absolute!important;right:9cqmin;top:80cqmin;max-width:58cqmin;text-align:right;font-family:"Noto Serif SC",serif;font-size:3.3cqmin;line-height:1.75;letter-spacing:.06em;color:#3d3a33}
 .ib-lines span{display:block}
 .i-seal.small{width:11cqmin;height:11cqmin;font-size:4cqmin;top:auto;bottom:12cqmin;right:9cqmin}
 .i-seal.small.one{font-size:4.6cqmin}
@@ -264,7 +283,7 @@
 .land .ib-qr{left:10cqmin;top:10cqmin;width:58cqmin}
 .land .ib-cap{left:10cqmin;top:auto;bottom:10cqmin}
 .land .ib-name{right:10cqmin;top:9cqmin}
-.land .ib-lines{right:30cqmin;top:12cqmin}
+.land .ib-lines{right:10cqmin;top:auto;bottom:23.5cqmin;max-width:66cqmin}
 .land .i-seal.small{right:46cqmin;bottom:10cqmin}
 
 /* ============ 7 AURORA — living light under frosted glass ============ */

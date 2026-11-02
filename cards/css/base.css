@@ -47,6 +47,9 @@ button{font:inherit;color:inherit}
 /* The square SVG sets the height: aspect-ratio plus padding came out tall in Safari. */
 .b-qr{overflow:hidden;background:var(--qr-bg,#fff)}
 .b-qr svg{display:block;width:100%;height:auto}
+/* The owner's own QR picture (WeChat, or WhatsApp's own code): shown as is, on white so it scans. */
+.b-qr:has(.qr-img){background:#fff}
+.b-qr .qr-img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
 
 /* Action bar */
 .actions{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 12px 0;position:relative;z-index:5}
