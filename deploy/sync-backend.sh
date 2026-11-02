@@ -8,6 +8,8 @@ cd "$(dirname "$0")"
 tar -czf - pb_hooks pb_migrations -C .. cards | bash "$VPS" 'set -e
   t=$(mktemp -d); trap "rm -rf $t" EXIT
   tar -xzf - -C $t
+  # A fresh number per deploy in the file addresses of the pages: browsers drop old copies at once.
+  sed -i "s/__V__/$(date +%s)/g" $t/cards/index.html $t/pb_hooks/card_page.html
   pb=/opt/namecard/pocketbase
   for d in pb_hooks pb_migrations; do
     sudo -n install -d -m 750 -o root -g namecard-pb $pb/$d

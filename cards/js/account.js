@@ -356,7 +356,7 @@ async function submit(form) {
   if (!form.reportValidity()) return;
   const step = form.dataset.step;
   error = "";
-  busy = step === "email" ? "Sending your code…" : "Signing in…";
+  busy = step !== "email" ? "Signing in…" : TURNSTILE ? "One moment… if a box appears below, tick it." : "Sending your code…";
   render();
   try {
     if (step === "email") await sendCode(form.email.value.trim());
@@ -378,7 +378,7 @@ async function submit(form) {
 
 async function resendCode() {
   error = "";
-  busy = "Sending a new code…";
+  busy = TURNSTILE ? "One moment… if a box appears below, tick it." : "Sending a new code…";
   render();
   try { await sendCode(codeFor.email); } catch (e) {
     error = e.status === 429 && !/^too many requests/i.test(e.message) ? e.message : /human/i.test(e.message) ? "We couldn't confirm you're a person. Please try again." : "Couldn't send the code. Please try again.";

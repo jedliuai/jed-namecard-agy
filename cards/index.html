@@ -9,10 +9,28 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;900&family=VT323&family=Archivo+Black&family=Bungee&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Pinyon+Script&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@500;900&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/account.css">
-<link rel="stylesheet" href="css/editor.css">
+<link rel="stylesheet" href="css/base.css?v=__V__">
+<link rel="stylesheet" href="css/styles.css?v=__V__">
+<link rel="stylesheet" href="css/account.css?v=__V__">
+<link rel="stylesheet" href="css/editor.css?v=__V__">
+<!-- Every deploy stamps __V__ with its own number (deploy/sync-backend.sh), so browsers fetch the new
+     files at once instead of running copies cached from an earlier deploy. -->
+<script type="importmap">
+{"imports": {
+  "./js/account.js": "./js/account.js?v=__V__",
+  "./js/config.js": "./js/config.js?v=__V__",
+  "./js/cropper.js": "./js/cropper.js?v=__V__",
+  "./js/debug.js": "./js/debug.js?v=__V__",
+  "./js/editor.js": "./js/editor.js?v=__V__",
+  "./js/fx.js": "./js/fx.js?v=__V__",
+  "./js/morphs.js": "./js/morphs.js?v=__V__",
+  "./js/presets.js": "./js/presets.js?v=__V__",
+  "./js/runtime.js": "./js/runtime.js?v=__V__",
+  "./js/sound.js": "./js/sound.js?v=__V__",
+  "./js/templates.js": "./js/templates.js?v=__V__",
+  "./js/util.js": "./js/util.js?v=__V__"
+}}
+</script>
 <style>
   .picker{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:0;right:0;z-index:20;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:0 12px;pointer-events:none}
   .picker button{pointer-events:auto;border:1px solid var(--ui-bd);background:var(--ui-bg);color:var(--ui-fg);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
