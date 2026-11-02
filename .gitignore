@@ -3,3 +3,6 @@
 render/node_modules/
 render/out/
 __pycache__/
+# Secrets never go into this public repository; they live outside it.
+*.env
+.env*
