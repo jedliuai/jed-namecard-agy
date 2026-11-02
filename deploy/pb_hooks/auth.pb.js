@@ -14,6 +14,9 @@ onRecordRequestOTPRequest((e) => {
   if (secret) {
     const token = String(body.turnstile || "");
     if (!token) throw new BadRequestError("Please confirm you're human.");
+    // The visitor's IP helps Cloudflare judge the token. This event has no e.request: read the headers
+    // from requestInfo (names lowercased, dashes as underscores).
+    const ip = String((e.requestInfo().headers || {})["cf_connecting_ip"] || "");
     const form = (o) => Object.entries(o).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&");
     let ok = false;
     try {
@@ -21,11 +24,14 @@ onRecordRequestOTPRequest((e) => {
         url: "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
-        body: form({ secret, response: token, remoteip: e.request.header.get("CF-Connecting-IP") || "" }),
+        body: form({ secret, response: token, remoteip: ip }),
         timeout: 10,
       });
       ok = res.statusCode === 200 && res.json && res.json.success === true;
-    } catch (_) {}
+      if (!ok) e.app.logger().warn("turnstile rejected", "status", res.statusCode, "body", toString(res.body).slice(0, 200));
+    } catch (err) {
+      e.app.logger().error("turnstile check failed", "error", String(err));
+    }
     if (!ok) throw new BadRequestError("Please confirm you're human.");
   }
 
