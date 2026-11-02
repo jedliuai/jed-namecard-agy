@@ -35,13 +35,38 @@ routerAdd("POST", "/api/paddle/webhook", (e) => {
     log.set("occurred_at", ev.occurred_at || "");
     log.set("payload", ev);
 
-    const uid = String((data.custom_data || {}).user_id || "");
+    const skusOf = (d) => (d.items || []).map((it) => ({ sku: ((it.price || {}).custom_data || {}).sku, qty: Number(it.quantity) || 1 }));
+    const notes = [];
+    let uid = String((data.custom_data || {}).user_id || "");
+    let skus = skusOf(data);
+    if (ev.event_type === "transaction.completed" && data.id) log.set("ref", "txn:" + data.id);
+
+    // A refund or chargeback names only the payment it undoes; that payment's event says who paid
+    // and for what. Only an approved one counts (refunds wait for approval in live mode).
+    let undo = null;
+    if (ev.event_type.startsWith("adjustment.") && (data.action === "refund" || data.action === "chargeback")) {
+      let paid = null;
+      try { paid = tx.findFirstRecordByData("paddle_events", "ref", "txn:" + data.transaction_id); } catch (_) {}
+      let done = false;
+      try { tx.findFirstRecordByData("paddle_events", "ref", "adj:" + data.id); done = true; } catch (_) {}
+      const full = data.type === "full" || (data.items || []).length > 0 && (data.items || []).every((it) => it.type === "full");
+      if (!paid) notes.push(data.action + " for unknown payment " + data.transaction_id);
+      else if (done) notes.push(data.action + " " + data.id + " already applied");
+      else if (data.status !== "approved") notes.push(data.action + " " + data.status + ", waiting for approval");
+      else if (!full) notes.push("partial " + data.action + " for " + data.transaction_id + ", review by hand");
+      else {
+        const p = JSON.parse(toString(paid.get("payload"))).data || {};
+        uid = paid.getString("user");
+        skus = skusOf(p);
+        undo = { periodEnd: (p.billing_period || {}).ends_at || "" };
+        log.set("ref", "adj:" + data.id);
+      }
+    }
+
     let user = null;
     if (/^[a-z0-9]{15}$/.test(uid)) {
       try { user = tx.findRecordById("users", uid); } catch (_) {}
     }
-    const skus = (data.items || []).map((it) => ({ sku: ((it.price || {}).custom_data || {}).sku, qty: Number(it.quantity) || 1 }));
-    const notes = [];
 
     if (!user) {
       notes.push(uid ? "unknown user " + uid : "no user_id in custom_data");
@@ -57,11 +82,30 @@ routerAdd("POST", "/api/paddle/webhook", (e) => {
       }
       if (data.customer_id) ent.set("paddle_customer_id", data.customer_id);
 
-      if (ev.event_type === "transaction.completed") {
+      if (undo) {
         for (const s of skus) {
           if (s.sku === "share_pack") {
-            ent.set("export_credits", ent.getInt("export_credits") + s.qty);
-            notes.push("+" + s.qty + " share pack");
+            // Packs already used become a debt that the next pack bought pays off.
+            const have = ent.getInt("export_credits"), back = Math.min(have, s.qty);
+            ent.set("export_credits", have - back);
+            ent.set("credits_owed", ent.getInt("credits_owed") + s.qty - back);
+            notes.push(data.action + ": -" + s.qty + " share pack" + (s.qty > back ? " (" + (s.qty - back) + " owed)" : ""));
+          } else if (s.sku === "pro") {
+            // The refunded period ends now and can never grant Pro again, whatever arrives later.
+            const end = undo.periodEnd || ent.getString("pro_until");
+            if (end && (!ent.getString("pro_void_until") || ent.getString("pro_void_until") < end)) ent.set("pro_void_until", end);
+            ent.set("pro_until", new Date().toISOString().replace("T", " "));
+            ent.set("pro_status", data.action === "chargeback" ? "chargeback" : "refunded");
+            notes.push(data.action + ": pro ended");
+          }
+        }
+      } else if (ev.event_type === "transaction.completed") {
+        for (const s of skus) {
+          if (s.sku === "share_pack") {
+            const owed = Math.min(ent.getInt("credits_owed"), s.qty);
+            ent.set("credits_owed", ent.getInt("credits_owed") - owed);
+            ent.set("export_credits", ent.getInt("export_credits") + s.qty - owed);
+            notes.push("+" + s.qty + " share pack" + (owed ? " (" + owed + " paid what was owed)" : ""));
           }
         }
       } else if (ev.event_type.startsWith("subscription.") && skus.some((s) => s.sku === "pro")) {
@@ -74,19 +118,19 @@ routerAdd("POST", "/api/paddle/webhook", (e) => {
           ent.set("pro_status", st);
           ent.set("paddle_subscription_id", data.id);
           ent.set("sub_event_at", ev.occurred_at || "");
+          const voidUntil = ent.getString("pro_void_until");
+          const voided = (t) => voidUntil && new Date(t) <= new Date(voidUntil.replace(" ", "T"));
           if (st === "active" || st === "trialing" || st === "past_due") {
             const end = (data.current_billing_period || {}).ends_at;
-            if (end) ent.set("pro_until", end);
-          } else if (st === "canceled" && data.canceled_at) {
-            ent.set("pro_until", data.canceled_at);
-          } else if (st === "paused" && data.paused_at) {
-            ent.set("pro_until", data.paused_at);
+            if (end && voided(end)) notes.push("period was refunded");
+            else if (end) ent.set("pro_until", end);
+          } else if ((st === "canceled" || st === "paused") && (data.canceled_at || data.paused_at)) {
+            // Ending can only shorten Pro: a refund may already have ended it earlier.
+            const at = data.canceled_at || data.paused_at, cur = ent.getString("pro_until");
+            if (!cur || new Date(at) < new Date(cur.replace(" ", "T"))) ent.set("pro_until", at);
           }
           notes.push("pro " + st);
         }
-      } else if (ev.event_type.startsWith("adjustment.")) {
-        // Refunds and chargebacks are kept for review; credits are not clawed back automatically yet.
-        notes.push(data.action + " " + data.status + " for " + data.transaction_id);
       }
       tx.save(ent);
     }

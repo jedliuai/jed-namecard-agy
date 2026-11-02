@@ -296,15 +296,17 @@ function render() {
       </form>`;
   } else {
     const pro = proActive();
-    const plan = pro ? `Pro · until ${day(ent.pro_until)}` : ent && ent.pro_status === "canceled" ? "Pro ended" : "Free plan";
-    const buys = Object.entries(PRODUCTS)
-      .filter(([sku]) => !(sku === "pro" && pro))
+    const ended = { canceled: "Pro ended", refunded: "Pro refunded", chargeback: "Pro ended" };
+    const plan = pro ? `Pro · until ${day(ent.pro_until)}` : (ent && ended[ent.pro_status]) || "Free plan";
+    // Pro already includes every export, so nothing is for sale while it lasts.
+    const buys = pro ? "" : Object.entries(PRODUCTS)
       .map(([sku, p]) => `<button class="acct-go" data-buy="${sku}">${p.label}</button><p class="acct-note">${p.note}</p>`)
       .join("");
+    const packs = pro && !credits() ? "Exports included" : `Share packs: ${credits()}`;
     body = `
       <h2>Account</h2>
       <p class="acct-sub">${esc(auth.user.email)}</p>
-      <div class="acct-plan"><b>${plan}</b><span>Share packs: ${credits()}</span></div>
+      <div class="acct-plan"><b>${plan}</b><span>${packs}</span></div>
       ${exportSection(pro)}
       ${buys}
       <p class="acct-fine">Payments are handled by Paddle, our merchant of record.</p>
