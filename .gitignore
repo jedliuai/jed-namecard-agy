@@ -2,3 +2,4 @@
 
 render/node_modules/
 render/out/
+__pycache__/
