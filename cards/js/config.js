@@ -4,6 +4,8 @@ const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const asked = local && new URLSearchParams(location.search).get("api");
 
 export const API = asked || "https://api.1name.cards";
+// Cloudflare Turnstile site key for the sign-in form (public by design). Empty: no human check.
+export const TURNSTILE = "";
 export const PADDLE = {
   env: "sandbox",
   token: "test_97afc8e77516a14895c42ee136d",

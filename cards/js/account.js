@@ -2,7 +2,7 @@
 // and share-pack exports of the user's saved card (rendered on the server, downloaded from here).
 // Also keeps that saved card for the editor (editor.js); "nc:account" fires whenever it or the sign-in changes.
 // Payments are only trusted once Paddle's signed webhook has updated the user's entitlement on the server.
-import { API, PADDLE } from "./config.js";
+import { API, PADDLE, TURNSTILE } from "./config.js";
 import { STYLES } from "./templates.js";
 
 const STORE = "nc-auth";
@@ -48,8 +48,33 @@ async function pb(path, { method = "GET", body } = {}) {
 // Sign-in is an emailed 6-digit code; a first code also creates the account (deploy/pb_hooks/auth.pb.js).
 let codeFor = null;   // { email, otpId } once a code has been sent
 
+// Cloudflare Turnstile: each code request carries a fresh token that the backend checks. Most people
+// never see it; a suspicious browser gets a one-click challenge shown in the panel.
+let tsBox = null;
+let tsScript = null;
+function humanToken() {
+  if (!TURNSTILE) return Promise.resolve("");
+  tsScript = tsScript || new Promise((res, rej) => {
+    const sc = Object.assign(document.createElement("script"), { src: "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit", async: true });
+    sc.onload = () => res(window.turnstile);
+    sc.onerror = () => { tsScript = null; rej(new Error("Turnstile failed to load")); };
+    document.head.appendChild(sc);
+  });
+  return tsScript.then((ts) => new Promise((res, rej) => {
+    const el = document.createElement("div");
+    tsBox.replaceChildren(el);
+    const id = ts.render(el, {
+      sitekey: TURNSTILE, appearance: "interaction-only", theme: "dark",
+      callback: (t) => { res(t); setTimeout(() => ts.remove(id), 0); },
+      "error-callback": () => { rej(new Error("human check failed")); ts.remove(id); },
+      "timeout-callback": () => { rej(new Error("human check timed out")); ts.remove(id); },
+    });
+  }));
+}
+
 async function sendCode(email) {
-  const d = await pb("/api/collections/users/request-otp", { method: "POST", body: { email } });
+  const turnstile = await humanToken();
+  const d = await pb("/api/collections/users/request-otp", { method: "POST", body: { email, turnstile } });
   codeFor = { email, otpId: d.otpId };
 }
 
@@ -316,7 +341,8 @@ function render() {
       <p class="acct-fine">Payments are handled by Paddle, our merchant of record.</p>
       <button class="acct-alt" data-out>Sign out</button>`;
   }
-  dialog.innerHTML = `
+  // The Turnstile box sits outside the redrawn part: moving its iframe would restart the check.
+  dialog.firstElementChild.innerHTML = `
     <button class="acct-x" data-close aria-label="Close">×</button>
     ${body}
     ${busy ? `<p class="acct-busy">${esc(busy)}</p>` : ""}
@@ -339,8 +365,10 @@ async function submit(form) {
       await Promise.all([loadEntitlement(), loadExports(), loadCard()]);
     }
   } catch (e) {
-    if (e.status === 429) error = e.message.startsWith("We just sent") ? e.message : "Too many tries. Wait a minute and try again.";
-    else if (step === "email") error = e.data.email ? "Please check the email address." : "Couldn't send the code. Please try again.";
+    // Our own limits explain themselves; PocketBase's per-IP limit just says "Too Many Requests."
+    if (e.status === 429) error = /^too many requests/i.test(e.message) ? "Too many tries. Wait a minute and try again." : e.message;
+    else if (/human/i.test(e.message)) error = "We couldn't confirm you're a person. Please try again.";
+    else if (step === "email") error = e.data && e.data.email ? "Please check the email address." : "Couldn't send the code. Please try again.";
     else error = "That code is wrong or has expired.";
   }
   busy = "";
@@ -352,7 +380,9 @@ async function resendCode() {
   error = "";
   busy = "Sending a new code…";
   render();
-  try { await sendCode(codeFor.email); } catch (e) { error = e.status === 429 ? e.message : "Couldn't send the code. Please try again."; }
+  try { await sendCode(codeFor.email); } catch (e) {
+    error = e.status === 429 && !/^too many requests/i.test(e.message) ? e.message : /human/i.test(e.message) ? "We couldn't confirm you're a person. Please try again." : "Couldn't send the code. Please try again.";
+  }
   busy = "";
   render();
 }
@@ -373,6 +403,8 @@ export function mountAccount(bar, getCurrent) {
   if (getCurrent) current = getCurrent;
   dialog = document.createElement("dialog");
   dialog.className = "acct";
+  dialog.innerHTML = `<div></div><div class="acct-ts"></div>`;
+  tsBox = dialog.lastElementChild;
   document.body.appendChild(dialog);
   dialog.addEventListener("click", (e) => {
     const r = dialog.getBoundingClientRect();
