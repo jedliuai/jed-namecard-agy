@@ -2,7 +2,7 @@
 // and share-pack exports of the user's saved card (rendered on the server, downloaded from here).
 // Also keeps that saved card for the editor (editor.js); "nc:account" fires whenever it or the sign-in changes.
 // Payments are only trusted once Paddle's signed webhook has updated the user's entitlement on the server.
-import { API, PADDLE, TURNSTILE } from "./config.js";
+import { API, TURNSTILE } from "./config.js";
 import { STYLES } from "./templates.js";
 
 const STORE = "nc-auth";
@@ -142,6 +142,7 @@ async function loadEntitlement() {
   if (!auth) return;
   const d = await pb("/api/collections/entitlements/records?perPage=1");
   ent = d.items[0] || null;
+  syncPaddleCustomer();
 }
 
 async function loadExports() {
@@ -187,20 +188,40 @@ async function orderExport() {
 const proActive = () => !!ent && !!ent.pro_until && new Date(ent.pro_until.replace(" ", "T")) > new Date();
 const credits = () => (ent && ent.export_credits) || 0;
 
+// Which Paddle account (sandbox or live), its client token and price IDs come from the server
+// (deploy/paddle.env.example), so going live is a server setting, not a code change.
+let paddleCfg;
+const paddleConfig = () => (paddleCfg ||= pb("/api/paddle/config").catch((e) => { paddleCfg = null; throw e; }));
+// Paddle Retain needs the signed-in buyer's Paddle customer ID (ctm_…), never our own user ID or email.
+const pwCustomer = () => (ent && ent.paddle_customer_id ? { id: ent.paddle_customer_id } : {});
+
 let paddleReady;
 function paddle() {
-  paddleReady ||= new Promise((resolve, reject) => {
+  paddleReady ||= paddleConfig().then((cfg) => new Promise((resolve, reject) => {
+    if (!cfg.token) return reject(new Error("Checkout isn't available right now."));
     const s = document.createElement("script");
     s.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
     s.onload = () => {
-      if (PADDLE.env === "sandbox") window.Paddle.Environment.set("sandbox");
-      window.Paddle.Initialize({ token: PADDLE.token, eventCallback: onPaddle });
+      // Live is Paddle.js's default; only the sandbox needs saying.
+      if (cfg.env === "sandbox") window.Paddle.Environment.set("sandbox");
+      window.Paddle.Initialize({ token: cfg.token, pwCustomer: pwCustomer(), eventCallback: onPaddle });
       resolve(window.Paddle);
     };
     s.onerror = () => { paddleReady = null; reject(new Error("Could not load checkout")); };
     document.head.appendChild(s);
-  });
+  })).catch((e) => { paddleReady = null; throw e; });
   return paddleReady;
+}
+
+// Once the buyer's Paddle customer ID is known (after their first purchase), tell Paddle.js, and on
+// live load it for signed-in customers so Retain can reach them about failed renewals.
+async function syncPaddleCustomer() {
+  if (!ent || !ent.paddle_customer_id) return;
+  try {
+    const cfg = await paddleConfig();
+    if (window.Paddle && paddleReady) window.Paddle.Update({ pwCustomer: pwCustomer() });
+    else if (cfg.env === "live") await paddle();
+  } catch {}
 }
 
 async function buy(sku) {
@@ -208,12 +229,12 @@ async function buy(sku) {
   busy = "Opening checkout…";
   render();
   try {
-    const P = await paddle();
+    const [P, cfg] = await Promise.all([paddle(), paddleConfig()]);
     // A modal dialog sits in the browser's top layer, above Paddle's overlay, so step aside.
     dialog.close();
     paying = false;
     P.Checkout.open({
-      items: [{ priceId: PADDLE.prices[sku], quantity: 1 }],
+      items: [{ priceId: cfg.prices[sku], quantity: 1 }],
       customer: { email: auth.user.email },
       customData: { user_id: auth.user.id },
       settings: { displayMode: "overlay", theme: "dark", allowLogout: false },

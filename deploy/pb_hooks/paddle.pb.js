@@ -4,8 +4,20 @@
 // Checkout passes customData { user_id } so every payment maps to a PocketBase user.
 // (PocketBase runs each handler in its own context, so helpers live inside it.)
 routerAdd("POST", "/api/paddle/webhook", (e) => {
+  const lib = require(`${__hooks}/_paddle_lib.js`);
   const secret = $os.getenv("PADDLE_WEBHOOK_SECRET").trim();
   if (!secret) throw new InternalServerError("webhook not configured");
+
+  // Only Paddle's own servers may call this. Requests arrive through Cloudflare, which puts the
+  // caller's real address in CF-Connecting-IP. If Paddle's list can't be had, answer 503 so Paddle
+  // retries later rather than the event being accepted or lost.
+  const ip = e.request.header.get("CF-Connecting-IP") || "";
+  const ok = lib.fromPaddle(e.app, ip);
+  if (ok === null) return e.json(503, { message: "try again later" });
+  if (!ok) {
+    e.app.logger().warn("paddle webhook from a non-Paddle address", "ip", ip, "env", lib.env());
+    throw new ForbiddenError("not allowed");
+  }
 
   const raw = toString(e.request.body);
   const sig = {};
@@ -139,4 +151,12 @@ routerAdd("POST", "/api/paddle/webhook", (e) => {
   });
 
   return e.json(200, { ok: true });
+});
+
+// The Paddle account the site uses (sandbox or live), its client-side token and price IDs, for the
+// checkout in the browser. All of it is public by design; it comes from server configuration so
+// switching to live needs no code change.
+routerAdd("GET", "/api/paddle/config", (e) => {
+  e.response.header().set("Cache-Control", "no-store");
+  return e.json(200, require(`${__hooks}/_paddle_lib.js`).publicConfig());
 });
