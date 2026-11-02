@@ -249,41 +249,40 @@
 @keyframes qi{0%{transform:translate(0,0) scale(.8);opacity:0}25%{opacity:.85}100%{transform:translate(14cqmin,-75cqh) scale(1.7);opacity:0}}
 .face > .i-ripple{inset:auto;width:30cqmin;height:30cqmin;border-radius:50%;border:.5cqmin solid rgba(28,27,24,.5);opacity:0;z-index:12}
 .i-name{position:absolute!important;right:9cqmin;top:9cqmin;writing-mode:vertical-rl;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:min(24cqmin,68cqmin / var(--n,3));line-height:1;letter-spacing:.06em;white-space:nowrap}
-/* Latin names stand upright: one word per line, right-aligned, the title set below them. */
-.i-name.lat,.ib-name.lat{writing-mode:horizontal-tb;text-align:right;font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:500;--fs:min(14cqmin,96cqmin / var(--L,6));font-size:var(--fs);line-height:1.02;letter-spacing:0}
-.i-title.lat{writing-mode:horizontal-tb;right:9cqmin;top:calc(11cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)));max-width:62cqmin;text-align:right;white-space:normal;font-family:"Cormorant Garamond",serif;font-size:4.4cqmin;letter-spacing:.16em;line-height:1.5}
+/* Latin names keep the vertical column but stand upright: capitals stacked, one word per column. */
+.i-name.lat,.ib-name.lat{font-family:"Cormorant Garamond",serif;font-weight:500;text-orientation:upright;text-transform:uppercase;letter-spacing:.02em;line-height:1.5;font-size:min(10cqmin,60cqmin / var(--L,6))}
+/* A Latin title would lie on its side in a column, so it joins the foot: one spaced line above it. */
+.i-title.lat{writing-mode:horizontal-tb;right:auto;top:auto;left:9cqmin;bottom:calc(8cqmin + 12.2cqmin + 1.4cqmin);font-family:"Cormorant Garamond",serif;font-size:3.5cqmin;letter-spacing:.24em;text-transform:uppercase;color:#f3eee2;text-shadow:0 0 1.2cqmin rgba(20,19,17,.95),0 0 3cqmin rgba(20,19,17,.7)}
 .i-title{position:absolute!important;right:36cqmin;top:11cqmin;writing-mode:vertical-rl;font-family:"Noto Serif SC",serif;font-size:4.2cqmin;letter-spacing:.42em;color:#3d3a33;white-space:nowrap}
 .i-seal{position:absolute!important;right:10cqmin;top:86cqmin;width:15.6cqmin;height:15.6cqmin;background:#b42a20;color:#f6e7d8;display:grid!important;grid-template-columns:1fr 1fr;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900;font-size:5.8cqmin;line-height:1;padding:1cqmin;writing-mode:vertical-rl;border-radius:.8cqmin;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><filter id='r'><feTurbulence baseFrequency='.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.9'/></filter><rect width='60' height='60' filter='url(%23r)'/></svg>") 0 0/100% 100%;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><filter id='r'><feTurbulence baseFrequency='.6' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.9'/></filter><rect width='60' height='60' filter='url(%23r)'/></svg>") 0 0/100% 100%}
 .i-seal.one{grid-template-columns:1fr;font-size:6.4cqmin}
-.i-seal{text-orientation:upright}
-/* Latin initials (only Latin seals carry a style attribute) read left to right. */
-.i-seal[style]{writing-mode:horizontal-tb;display:flex!important;justify-content:center;align-items:center;gap:.8cqmin}
-.i-title.lat + .i-seal{top:calc(13cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)) + 12cqmin)}
-.land .i-title.lat + .i-seal{top:auto}
+.i-seal.lat{writing-mode:horizontal-tb;font-family:"Cormorant Garamond",serif;font-weight:600}
 .i-foot{position:absolute!important;left:9cqmin;bottom:8cqmin;font-family:"Noto Serif SC",serif;font-size:3.6cqmin;line-height:1.7;color:#f3eee2;letter-spacing:.06em;text-shadow:0 0 1.2cqmin rgba(20,19,17,.95),0 0 3cqmin rgba(20,19,17,.7);white-space:nowrap}
 .land .face > .i-sun{top:14cqmin;left:58cqmin}
 .land .i-name{right:12cqmin;top:9cqmin}
 .land .i-title{right:40cqmin;top:10cqmin}
-.land .i-title.lat{right:12cqmin;top:calc(11cqmin + var(--nl,1) * 1.02 * min(14cqmin,96cqmin / var(--L,6)));max-width:70cqmin}
 .land .i-seal{right:41cqmin;top:auto;bottom:10cqmin}
 .land .i-foot{left:10cqmin;bottom:9cqmin}
+.land .i-title.lat{left:10cqmin;right:auto;top:auto;bottom:calc(9cqmin + 12.2cqmin + 1.4cqmin)}
 /* back: moonlit far hills, vertical lines of text */
 .face > .i-moon{inset:auto;width:24cqmin;height:24cqmin;border-radius:50%;top:46cqmin;right:8cqmin;background:radial-gradient(circle at 42% 40%,#fdfbf5,#e7e0cf 70%);box-shadow:0 0 8cqmin 2cqmin rgba(231,224,207,.9);opacity:.85;transition:top 1.3s,right 1.3s}
 .i-far{inset:auto -10% -2% -10%!important;height:46%;background:radial-gradient(38% 55% at 18% 100%,rgba(24,23,20,.7),rgba(24,23,20,.25) 50%,rgba(24,23,20,0) 74%),radial-gradient(28% 85% at 62% 100%,rgba(24,23,20,.5),rgba(24,23,20,0) 70%),radial-gradient(22% 50% at 88% 100%,rgba(24,23,20,.6),rgba(24,23,20,0) 72%),radial-gradient(70% 28% at 50% 100%,rgba(24,23,20,.75),rgba(24,23,20,0) 75%);filter:blur(1.3cqmin)}
 .ib-qr{position:absolute!important;left:9cqmin;top:11cqmin;width:48cqmin;padding:2cqmin;border:.45cqmin solid #b42a20;background:#f3eee2}
 .ib-cap{position:absolute!important;left:9cqmin;top:63cqmin;font-family:"Noto Serif SC",serif;font-size:3.4cqmin;letter-spacing:.3em;color:#b42a20;white-space:nowrap}
 .ib-name{position:absolute!important;right:9cqmin;top:9cqmin;writing-mode:vertical-rl;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:15cqmin;line-height:1;letter-spacing:.08em;white-space:nowrap}
-.ib-name.lat{--fs:min(11cqmin,80cqmin / var(--L,6))}
-/* Phone and email are Latin, so the contact lines run across, not down. */
-.ib-lines{position:absolute!important;right:9cqmin;top:80cqmin;max-width:58cqmin;text-align:right;font-family:"Noto Serif SC",serif;font-size:3.3cqmin;line-height:1.75;letter-spacing:.06em;color:#3d3a33}
+.ib-name.lat{font-size:min(8cqmin,44cqmin / var(--L,6))}
+.ib-lines{position:absolute!important;right:27cqmin;top:76cqmin;writing-mode:vertical-rl;font-family:"Noto Serif SC",serif;font-size:3.3cqmin;line-height:1.9;letter-spacing:.12em;color:#3d3a33;white-space:nowrap}
 .ib-lines span{display:block}
+/* On a Latin card the contact lines run across, under the name, so nothing lies on its side. */
+.ib-lines.lat{writing-mode:horizontal-tb;right:9cqmin;top:auto;bottom:30cqmin;text-align:right;line-height:1.75;letter-spacing:.06em}
 .i-seal.small{width:11cqmin;height:11cqmin;font-size:4cqmin;top:auto;bottom:12cqmin;right:9cqmin}
 .i-seal.small.one{font-size:4.6cqmin}
 .land .face > .i-moon{top:8cqmin;right:auto;left:72cqmin}
 .land .ib-qr{left:10cqmin;top:10cqmin;width:58cqmin}
 .land .ib-cap{left:10cqmin;top:auto;bottom:10cqmin}
 .land .ib-name{right:10cqmin;top:9cqmin}
-.land .ib-lines{right:10cqmin;top:auto;bottom:23.5cqmin;max-width:66cqmin}
+.land .ib-lines{right:30cqmin;top:12cqmin}
+.land .ib-lines.lat{right:calc(15cqmin + var(--c,2) * 12cqmin);top:12cqmin;bottom:auto;max-width:calc(72cqmin - var(--c,2) * 12cqmin);overflow-wrap:anywhere}
 .land .i-seal.small{right:46cqmin;bottom:10cqmin}
 
 /* ============ 7 AURORA — living light under frosted glass ============ */

@@ -54,18 +54,15 @@ function seal(name) {
   }
   return { txt: initials(n), one: true };
 }
-// Ink sets Chinese names in vertical columns. Latin letters turned sideways read wrong, so a Latin
-// name is set upright, one word per line, sized to its longest word; the title follows below it.
-const latVars = (d) => {
-  const w = words(d.name);
-  return `--nl:${Math.min(3, w.length) || 1};--L:${Math.max(4, ...w.map((x) => x.length))}`;
-};
+// Ink sets names in vertical columns. Latin letters would lie on their side there, so a Latin name
+// stands upright instead: capitals stacked, one word per column, sized to its longest word.
+const latVars = (d) => `--L:${Math.max(4, ...words(d.name).slice(0, 3).map((x) => x.length))};--c:${Math.min(3, words(d.name).length) || 1}`;
 const inkName = (d, p) => isCJK(d.name)
   ? `<div class="${p}-name" style="--n:${[...String(d.name || "")].length || 1}" data-m>${esc(d.name)}</div>`
   : `<div class="${p}-name lat" style="${latVars(d)}" data-m>${words(d.name).slice(0, 3).map(esc).join("<br>")}${words(d.name).length > 3 ? " " + words(d.name).slice(3).map(esc).join(" ") : ""}</div>`;
 const sealHTML = (d, cls = "") => {
   const s = seal(d.name);
-  return `<div class="i-seal${s.one ? " one" : ""} ${cls}"${isCJK(d.name) ? "" : ` style="${latVars(d)}"`} data-m>${[...s.txt].map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
+  return `<div class="i-seal${s.one ? " one" : ""}${isCJK(d.name) ? "" : " lat"} ${cls}" data-m>${[...s.txt].map((c) => `<span>${esc(c)}</span>`).join("")}</div>`;
 };
 
 const NFC_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 7c2.5 3 2.5 7 0 10M12 5c3.5 4 3.5 10 0 14M16 3c4.5 5 4.5 13 0 18"/></svg>`;
@@ -183,7 +180,7 @@ const FRONT = {
     <div class="fx i-crane c1"><div class="cr-bob">${CRANE}</div></div><div class="fx i-crane c2"><div class="cr-bob">${CRANE}</div></div>
     <div class="fx i-mist m2"></div><div class="fx i-qi"><i></i><i></i><i></i><i></i><i></i></div><div class="fx i-ripple"></div>
     ${inkName(d, "i")}
-    <div class="i-title${isCJK(d.title) ? "" : " lat"}" style="${latVars(d)}" data-m>${esc(d.title)}</div>
+    <div class="i-title${isCJK(d.title) ? "" : " lat"}" data-m>${esc(d.title)}</div>
     ${sealHTML(d)}
     <div class="i-foot" data-m>${esc(d.company)}<br>${imLine(d, isWeChat(d) ? "微信" : "WhatsApp")}</div>`,
 
@@ -302,7 +299,7 @@ END:VCARD</pre>
     <div class="ib-qr" data-m><div class="b-qr">${q}</div></div>
     <div class="ib-cap" data-m>扫码 · ${scanTo(d) === "WeChat" ? "微信" : scanTo(d) === "My card" ? "名片" : "WhatsApp"}</div>
     ${inkName(d, "ib")}
-    <div class="ib-lines" data-m><span>${esc(d.company)}</span><span>${esc(d.phone)}</span><span>${esc(d.email)}</span></div>
+    <div class="ib-lines${isCJK(d.name) ? "" : ` lat" style="${latVars(d)}`}" data-m><span>${esc(d.company)}</span><span>${esc(d.phone)}</span><span>${esc(d.email)}</span></div>
     ${sealHTML(d, "small")}`,
 
   aurora: (d, q) => `
