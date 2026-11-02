@@ -344,8 +344,10 @@ export function mountCard(stage, { style, data, quiet = false }) {
     const dx = toStage(e.clientX - drag.x0, e.clientY - drag.y0);
     const prev = S.flip;
     S.flip = drag.a0 + dx * 0.55;
-    const dt = Math.max(1, now - drag.t);
-    drag.v = (S.flip - prev) / dt;
+    // Two pointer events a fraction of a millisecond apart gave absurd speeds and a card that kept
+    // whirling for seconds; a hard flick is about 3°/ms.
+    const dt = Math.max(8, now - drag.t);
+    drag.v = Math.max(-3, Math.min(3, (S.flip - prev) / dt));
     drag.t = now;
     drag.moved = drag.moved || Math.abs(dx) > 6;
   });

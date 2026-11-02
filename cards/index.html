@@ -106,6 +106,8 @@ if (!render) {
   document.addEventListener("nc:account", () => { if (me && !isEditing()) mount(true); });
   document.addEventListener("nc:edit", () => { me = true; openEditor(); });
 }
+// ?debug: frame-rate and freeze overlay for testing on phones.
+if (q.has("debug")) import("./js/debug.js").then((m) => m.mountDebug());
 // Showroom only: once the visitor starts playing, fetch the other styles' music in the background.
 addEventListener("pointerdown", () => preload(STYLES.map((s) => s.id)), { once: true });
 </script>
