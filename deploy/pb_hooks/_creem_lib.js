@@ -15,7 +15,7 @@ module.exports = {
     const res = $http.send({
       url: base() + path,
       method,
-      headers: { "x-api-key": key(), "content-type": "application/json" },
+      headers: { "x-api-key": key(), "content-type": "application/json", "user-agent": "SuperNamecard/1.0 (+https://1name.cards)" },
       body: body === undefined ? "" : JSON.stringify(body),
       timeout: 20,
     });

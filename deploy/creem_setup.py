@@ -35,7 +35,8 @@ mode = "test" if key.startswith("creem_test_") else "live"
 
 
 def api(method, path, body=None, idem=None):
-    headers = {"x-api-key": key, "Content-Type": "application/json"}
+    # Creem sits behind Cloudflare, which turns away the default Python user agent (error 1010).
+    headers = {"x-api-key": key, "Content-Type": "application/json", "User-Agent": "SuperNamecard/1.0 (+https://1name.cards)"}
     if idem:
         headers["Idempotency-Key"] = idem
     req = urllib.request.Request(base + path, method=method, headers=headers, data=json.dumps(body).encode() if body is not None else None)
