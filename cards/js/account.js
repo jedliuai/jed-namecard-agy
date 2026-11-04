@@ -224,11 +224,22 @@ async function syncPaddleCustomer() {
   } catch {}
 }
 
+// Which payment provider the site uses (Creem or Paddle) is server configuration.
+let billingCfg, provider = "";
+const billingConfig = () => (billingCfg ||= pb("/api/billing/config").then((c) => { provider = c.provider; return c; }).catch((e) => { billingCfg = null; throw e; }));
+
 async function buy(sku) {
   error = "";
   busy = "Opening checkout…";
   render();
   try {
+    // Creem: the server makes the checkout link (it needs the secret API key); Creem's checkout page
+    // sends the buyer back to /?paid=… and the webhook does the rest.
+    if ((await billingConfig()).provider === "creem") {
+      const { url } = await pb("/api/creem/checkout", { method: "POST", body: { sku } });
+      location.href = url;
+      return;
+    }
     const [P, cfg] = await Promise.all([paddle(), paddleConfig()]);
     // A modal dialog sits in the browser's top layer, above Paddle's overlay, so step aside.
     dialog.close();
@@ -259,7 +270,13 @@ async function onPaddle(ev) {
   }
   if (ev.name !== "checkout.completed") return;
   paying = true;
-  const before = JSON.stringify([proActive(), credits()]);
+  await waitForPayment(JSON.stringify([proActive(), credits()]));
+  try { window.Paddle.Checkout.close(); } catch {}
+  open();
+}
+
+// The plan changes when the provider's webhook lands, usually within seconds of paying.
+async function waitForPayment(before) {
   busy = "Payment received. Unlocking…";
   open();
   for (let i = 0; i < 30; i++) {
@@ -269,8 +286,23 @@ async function onPaddle(ev) {
   }
   busy = "";
   if (JSON.stringify([proActive(), credits()]) === before) error = "Payment is still being confirmed. Check back in a minute.";
-  try { window.Paddle.Checkout.close(); } catch {}
-  open();
+  render();
+}
+
+// Creem's customer portal: cancel or change a subscription, update the card, download invoices.
+async function manageBilling() {
+  error = "";
+  busy = "Opening your billing page…";
+  render();
+  try {
+    const { url } = await pb("/api/creem/portal", { method: "POST" });
+    location.href = url;
+    return;
+  } catch (e) {
+    error = e.message;
+  }
+  busy = "";
+  render();
 }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -353,13 +385,15 @@ function render() {
       .map(([sku, p]) => `<button class="acct-go" data-buy="${sku}">${p.label}</button><p class="acct-note">${p.note}</p>`)
       .join("");
     const packs = pro && !credits() ? "Exports included" : `Share packs: ${credits()}`;
+    const manage = ent && ent.creem_customer_id ? `<button class="acct-alt" data-billing>${pro ? "Manage subscription" : "Billing and receipts"}</button>` : "";
     body = `
       <h2>Account</h2>
       <p class="acct-sub">${esc(auth.user.email)}</p>
       <div class="acct-plan"><b>${plan}</b><span>${packs}</span></div>
       ${exportSection(pro)}
       ${buys}
-      <p class="acct-fine">Payments are handled by Paddle, our merchant of record.</p>
+      ${manage}
+      <p class="acct-fine">Payments are handled by ${provider === "creem" ? "Creem" : "Paddle"}, our merchant of record.</p>
       <button class="acct-alt" data-out>Sign out</button>`;
   }
   // The Turnstile box sits outside the redrawn part: moving its iframe would restart the check.
@@ -437,6 +471,7 @@ export function mountAccount(bar, getCurrent) {
     if ("other" in b.dataset) { codeFor = null; error = ""; return render(); }
     if (b.form) { e.preventDefault(); return submit(b.form); }
     if (b.dataset.buy) return buy(b.dataset.buy);
+    if ("billing" in b.dataset) return manageBilling();
     if ("export" in b.dataset) return orderExport();
     if ("edit" in b.dataset) { dialog.close(); return document.dispatchEvent(new Event("nc:edit")); }
     if ("out" in b.dataset) { save(null); ent = null; exportsList = []; card = null; error = ""; render(); emit(); }
@@ -450,8 +485,21 @@ export function mountAccount(bar, getCurrent) {
   btn.addEventListener("click", open);
   bar.appendChild(btn);
 
+  billingConfig().then(render).catch(() => {});
   // Paddle's hosted payment links return here with ?_ptxn=…; loading Paddle.js resumes that checkout.
   if (new URLSearchParams(location.search).has("_ptxn")) paddle();
+  // Back from Creem's checkout (/?paid=pro or share_pack): show the account while the payment lands.
+  if (new URLSearchParams(location.search).has("paid") && auth) {
+    const u = new URL(location.href);
+    for (const k of ["paid", "checkout_id", "order_id", "customer_id", "subscription_id", "product_id", "request_id", "signature"]) u.searchParams.delete(k);
+    history.replaceState(null, "", u);
+    refresh().then(loadEntitlement).catch(() => {}).then(() => {
+      // A webhook that already landed shows up at once; otherwise wait for it.
+      const sku = new URLSearchParams(location.search).get("paid");
+      if ((sku === "pro" && proActive()) || (sku !== "pro" && credits() > 0)) return open();
+      return waitForPayment(JSON.stringify([proActive(), credits()]));
+    });
+  }
   // A returning visitor sees their own card without opening anything.
   if (auth) refresh().then(loadEntitlement).then(loadCard).catch(() => {});
 }

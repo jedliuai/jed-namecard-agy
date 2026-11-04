@@ -41,6 +41,7 @@ WorkingDirectory=$PB_DIR
 EnvironmentFile=-$BASE/secrets/paddle.env
 EnvironmentFile=-$BASE/secrets/render-worker.env
 EnvironmentFile=-$BASE/secrets/turnstile.env
+EnvironmentFile=-$BASE/secrets/creem.env
 ExecStart=$PB_DIR/pocketbase serve --http=127.0.0.1:$PORT --dir=$PB_DIR/pb_data --hooksDir=$PB_DIR/pb_hooks --migrationsDir=$PB_DIR/pb_migrations --automigrate=false
 Restart=on-failure
 RestartSec=5
