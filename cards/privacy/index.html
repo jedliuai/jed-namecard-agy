@@ -3,6 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Google Analytics 4. Counts visits on the live site only (not local testing, not the export
+     renderer's ?render pages). Visitors in the EU, EEA, UK and Switzerland are counted without
+     cookies (Consent Mode, analytics_storage denied); advertising features are off everywhere. -->
+<script>
+if (location.hostname === "1name.cards" && !/[?&]render\b/.test(location.search)) {
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  const ads = { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" };
+  gtag("consent", "default", { analytics_storage: "denied", ...ads, region: ["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","IS","LI","NO","GB","CH"] });
+  gtag("consent", "default", { analytics_storage: "granted", ...ads });
+  gtag("js", new Date());
+  gtag("config", "G-GDTEGCK0JK");
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=G-GDTEGCK0JK";
+  document.head.appendChild(s);
+}
+</script>
 <title>Privacy Policy · Super Namecard</title>
 <meta name="description" content="What Super Namecard collects, why, and how to have it deleted.">
 <link rel="canonical" href="https://1name.cards/privacy/">
@@ -23,7 +42,7 @@ footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1
 <main>
 <nav><a href="/">Super Namecard</a><a href="/terms/">Terms</a><a href="/privacy/" aria-current="page">Privacy</a><a href="/refund/">Refunds</a></nav>
 <h1>Privacy Policy</h1>
-<p class="updated">Last updated: 2 November 2026</p>
+<p class="updated">Last updated: 4 November 2026</p>
 
 <p>This policy explains what personal data Super Namecard (1name.cards) collects and how it is used. The service is operated by Yongjun Liu ("we"), who is responsible for your data. Contact: <a href="mailto:support@1name.cards">support@1name.cards</a>.</p>
 
@@ -35,7 +54,7 @@ footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1
 <li><b>Exports</b> you order, and the files made for you.</li>
 <li><b>Technical data</b>: IP address and browser details in our server logs, used for security and to stop abuse. We keep them for a short time.</li>
 </ul>
-<p>We do not use advertising or tracking cookies, and we do not sell your data. Your browser keeps your sign-in session and an unsaved card draft in its local storage on your own device.</p>
+<p>We use Google Analytics to see how visitors find and use the site: pages viewed, roughly where from (country or city), and the kind of device and browser. Outside the EU, EEA, UK and Switzerland it sets first-party analytics cookies; inside them it runs without cookies. We do not use advertising cookies, Google's advertising features are off, and we do not sell your data. Your browser keeps your sign-in session and an unsaved card draft in its local storage on your own device.</p>
 
 <h2>Why we use it</h2>
 <ul>
@@ -52,6 +71,7 @@ footer{margin-top:40px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1
 <li><b>Cloudflare</b>: network delivery, security and the human check on sign-in (Turnstile).</li>
 <li><b>Resend</b>: sending sign-in code emails.</li>
 <li><b>Creem</b>: payments, as Merchant of Record. Creem processes your payment data under its own privacy policy.</li>
+<li><b>Google Analytics</b>: visit statistics for our own pages (not for people's card pages).</li>
 </ul>
 <p>Some of these providers process data outside your country, including in the United States, with safeguards such as standard contractual clauses.</p>
 

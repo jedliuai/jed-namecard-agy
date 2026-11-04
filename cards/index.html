@@ -4,6 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0b0e">
+<!-- Google Analytics 4. Counts visits on the live site only (not local testing, not the export
+     renderer's ?render pages). Visitors in the EU, EEA, UK and Switzerland are counted without
+     cookies (Consent Mode, analytics_storage denied); advertising features are off everywhere. -->
+<script>
+if (location.hostname === "1name.cards" && !/[?&]render\b/.test(location.search)) {
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  const ads = { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" };
+  gtag("consent", "default", { analytics_storage: "denied", ...ads, region: ["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","IS","LI","NO","GB","CH"] });
+  gtag("consent", "default", { analytics_storage: "granted", ...ads });
+  gtag("js", new Date());
+  gtag("config", "G-GDTEGCK0JK");
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=G-GDTEGCK0JK";
+  document.head.appendChild(s);
+}
+</script>
 <title>Super Namecard: 3D digital business card with WhatsApp or WeChat QR</title>
 <meta name="description" content="Make a 3D digital business card in a minute. Nine styles, your photo, a WhatsApp or WeChat QR code, a link of your own and video exports for social media. Free to try.">
 <link rel="canonical" href="https://1name.cards/">
