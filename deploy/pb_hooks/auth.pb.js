@@ -63,9 +63,9 @@ onRecordRequestOTPRequest((e) => {
 
 // Without TURNSTILE_SECRET the sign-in form's human check is silently skipped (the env file is optional
 // in the systemd unit), so say so in the logs at every start.
-onServe((e) => {
+onBootstrap((e) => {
+  e.next();
   if (!$os.getenv("TURNSTILE_SECRET").trim()) e.app.logger().warn("TURNSTILE_SECRET is not set: sign-in codes are sent without a human check");
-  return e.next();
 });
 
 // Daily: accounts that asked for a code but never signed in (a successful code sign-in verifies the
