@@ -61,6 +61,13 @@ onRecordRequestOTPRequest((e) => {
   e.app.save(log);
 }, "users");
 
+// Without TURNSTILE_SECRET the sign-in form's human check is silently skipped (the env file is optional
+// in the systemd unit), so say so in the logs at every start.
+onServe((e) => {
+  if (!$os.getenv("TURNSTILE_SECRET").trim()) e.app.logger().warn("TURNSTILE_SECRET is not set: sign-in codes are sent without a human check");
+  return e.next();
+});
+
 // Daily: accounts that asked for a code but never signed in (a successful code sign-in verifies the
 // email) are removed after two days, and the send log keeps three days.
 cronAdd("accounts-cleanup", "41 3 * * *", () => {

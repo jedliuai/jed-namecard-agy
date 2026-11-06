@@ -151,7 +151,7 @@ routerAdd("POST", "/api/paddle/webhook", (e) => {
   });
 
   return e.json(200, { ok: true });
-});
+}, $apis.bodyLimit(1 << 20));
 
 // The Paddle account the site uses (sandbox or live), its client-side token and price IDs, for the
 // checkout in the browser. All of it is public by design; it comes from server configuration so

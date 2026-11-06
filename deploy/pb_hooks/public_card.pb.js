@@ -23,8 +23,9 @@ routerAdd("GET", "/{$}", (e) => {
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const tpl = toString($os.readFile(`${__hooks}/card_page.html`));
   const page = (status, v) => {
-    let html = tpl;
-    for (const [k, val] of Object.entries(v)) html = html.split(`{{${k}}}`).join(val);
+    // One pass over the template: a value that itself contains "{{BODY}}" (a card name can) must not
+    // be filled in again by a later placeholder.
+    const html = tpl.replace(/\{\{([A-Z]+)\}\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(v, k) ? v[k] : m));
     e.response.header().set("Cache-Control", "no-store");
     return e.html(status, html);
   };

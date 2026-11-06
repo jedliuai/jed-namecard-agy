@@ -223,4 +223,4 @@ routerAdd("POST", "/api/creem/webhook", (e) => {
   });
 
   return e.json(200, { ok: true });
-});
+}, $apis.bodyLimit(1 << 20)); // the body is read whole before the signature can be checked; real events are a few KB

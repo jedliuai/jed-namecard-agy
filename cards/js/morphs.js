@@ -147,6 +147,8 @@ function loadMatter() {
   return (matterP ||= new Promise((res, rej) => {
     const s = document.createElement("script");
     s.src = "https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js";
+    s.integrity = "sha384-OqQP3UcU7efkEYDRjGmQou2uEvzGFGRtwdYXTjnupeB9cWogSgQ4BOhyklFBYbBR";
+    s.crossOrigin = "anonymous";
     s.onload = () => res(window.Matter);
     s.onerror = rej;
     document.head.appendChild(s);
