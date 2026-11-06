@@ -103,7 +103,11 @@ routerAdd("POST", "/api/creem/webhook", (e) => {
       try { paid = tx.findFirstRecordByData("creem_events", "ref", "tran:" + tranId); } catch (_) {}
       let done = false;
       try { tx.findFirstRecordByData("creem_events", "ref", "refund:" + tranId); done = true; } catch (_) {}
-      const full = type === "dispute.created" || tran.status === "refunded";
+      // The transaction in a live refund event is a snapshot from before the refund (status still
+      // "paid", nothing refunded yet), so compare the amounts too.
+      const paidAmt = Number(tran.amount_paid != null ? tran.amount_paid : tran.amount) || 0;
+      const full = type === "dispute.created" || tran.status === "refunded" ||
+        (paidAmt > 0 && Number(obj.refund_amount) + (Number(tran.refunded_amount) || 0) >= paidAmt);
       if (!paid) notes.push(type + " for unknown payment " + tranId);
       else if (done) notes.push("payment " + tranId + " already refunded");
       else if (!full) notes.push("partial refund of " + tranId + ", review by hand");
@@ -209,7 +213,7 @@ routerAdd("POST", "/api/creem/webhook", (e) => {
           }
           notes.push(type + " " + st + (end ? " until " + end : ""));
         }
-      } else {
+      } else if (!notes.length) {
         notes.push("ignored " + type);
       }
       tx.save(ent);
