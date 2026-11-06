@@ -163,6 +163,30 @@ if (location.hostname === "1name.cards" && !/[?&]render\b/.test(location.search)
   <details><summary>What is in an export?</summary><p>An HD video of your card turning and flipping, with the style's music, plus a GIF and JPG images of the front, back and landscape view. They are made for Instagram, TikTok and WhatsApp Status.</p></details>
   <details><summary>Who can see my card?</summary><p>Only people you give your link or QR code to. Card pages are kept out of search engines, and you can change your card at any time.</p></details>
 
+  <!-- guides -->
+  <h2>Guides</h2>
+  <ul class="about-guides">
+    <li><a href="/business-card-maker/">Free online business card maker</a></li>
+    <li><a href="/whatsapp-business-card/">WhatsApp business card with your QR code</a></li>
+    <li><a href="/wechat-business-card/">WeChat business card with your WeChat QR code</a></li>
+    <li><a href="/qr-code-business-card/">QR code business card</a></li>
+    <li><a href="/animated-business-card/">3D animated business card</a></li>
+  </ul>
+  <h3>By profession</h3>
+  <ul class="about-guides">
+    <li><a href="/digital-business-card-for-lawyers/">Business card for lawyers</a></li>
+    <li><a href="/digital-business-card-for-real-estate-agents/">Business card for real estate agents</a></li>
+    <li><a href="/digital-business-card-for-influencers/">Business card for influencers and creators</a></li>
+    <li><a href="/digital-business-card-for-developers/">Business card for developers</a></li>
+    <li><a href="/digital-business-card-for-architects/">Business card for architects and designers</a></li>
+    <li><a href="/digital-business-card-for-restaurants/">Business card for restaurants and shops</a></li>
+    <li><a href="/chinese-business-card/">Chinese business card</a></li>
+    <li><a href="/digital-business-card-for-therapists/">Business card for therapists and wellness</a></li>
+    <li><a href="/digital-business-card-for-engineers/">Business card for engineers and construction</a></li>
+    <li><a href="/digital-business-card-for-doctors/">Business card for doctors, pharma and biotech</a></li>
+  </ul>
+  <!-- /guides -->
+
   <footer class="about-foot"><span>© 2026 Super Namecard · 1name.cards</span><a href="/terms/">Terms</a><a href="/privacy/">Privacy</a><a href="/refund/">Refunds</a><a href="mailto:support@1name.cards">support@1name.cards</a><span>Payments by Creem</span></footer>
 </div>
 </section>
@@ -262,7 +286,12 @@ if (!render) {
     else if (e.target.closest("[data-about-start]")) { show(false); me = true; openEditor(); }
   });
   addEventListener("keydown", (e) => { if (e.key === "Escape" && about.classList.contains("open")) show(false); });
-  const fromHash = () => { const h = location.hash.slice(1); if (h === "about" || h === "pricing") show(true, h === "pricing" ? "pricing" : null); };
+  // #make (the landing pages' "Make your card" button) opens the editor straight away.
+  const fromHash = () => {
+    const h = location.hash.slice(1);
+    if (h === "about" || h === "pricing") show(true, h === "pricing" ? "pricing" : null);
+    else if (h === "make") { history.replaceState(null, "", location.pathname + location.search); me = true; openEditor(); }
+  };
   addEventListener("hashchange", fromHash);
   fromHash();
 }

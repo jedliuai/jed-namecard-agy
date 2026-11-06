@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://1name.cards/</loc><lastmod>2026-11-04</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://1name.cards/</loc><lastmod>2026-11-06</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <!-- guides -->
+  <url><loc>https://1name.cards/business-card-maker/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://1name.cards/whatsapp-business-card/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://1name.cards/wechat-business-card/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://1name.cards/qr-code-business-card/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://1name.cards/animated-business-card/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-lawyers/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-real-estate-agents/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-influencers/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-developers/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-architects/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-restaurants/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/chinese-business-card/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-therapists/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-engineers/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://1name.cards/digital-business-card-for-doctors/</loc><lastmod>2026-11-06</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- /guides -->
   <url><loc>https://1name.cards/terms/</loc><lastmod>2026-11-02</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://1name.cards/privacy/</loc><lastmod>2026-11-04</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://1name.cards/refund/</loc><lastmod>2026-11-02</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
