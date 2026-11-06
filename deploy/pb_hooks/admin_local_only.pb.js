@@ -7,7 +7,7 @@ routerUse((e) => {
   if (!e.request.header.get("Cf-Ray")) return e.next();
   const path = e.request.url.path;
   if (path === "/_" || path.startsWith("/_/")) throw new NotFoundError();
-  if (/^\/api\/(settings|backups|logs|crons)(\/|$)/.test(path)) throw new NotFoundError();
+  if (/^\/api\/(settings|backups|logs|crons|ops)(\/|$)/.test(path)) throw new NotFoundError();
   const m = path.match(/^\/api\/collections(?:\/([^/]+)(\/[^/]*)?)?/);
   if (m) {
     // Only record CRUD and the user auth flows are public.
